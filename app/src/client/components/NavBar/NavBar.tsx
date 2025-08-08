@@ -37,7 +37,7 @@ export default function NavBar({ navigationItems }: { navigationItems: Navigatio
 
   return (
     <>
-      {isLandingPage && <Announcement />}
+      {/* {isLandingPage && <Announcement />} */}
       <header className={cn('sticky top-0 z-50 transition-all duration-300', isScrolled && 'top-4')}>
         <div
           className={cn('transition-all duration-300', {
