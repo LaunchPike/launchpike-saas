@@ -12,11 +12,12 @@ export default function Hero() {
         <div className='mx-auto max-w-8xl px-6 lg:px-8'>
           <div className='lg:mb-18 mx-auto max-w-3xl text-center'>
             <h1 className='text-5xl font-bold text-foreground sm:text-6xl'>
-              Some <span className='italic'>cool</span> words about{' '}
-              <span className='text-gradient-primary'>your product</span>
+              Launch your <span className='italic'>SaaS</span> project with{' '}
+              <span className='text-gradient-primary'>LaunchPike</span>
             </h1>
             <p className='mt-6 mx-auto max-w-2xl text-lg leading-8 text-muted-foreground'>
-              With some more exciting words about your product!
+              Full-featured OpenSaaS template with ready-made solutions for authentication, payments, analytics, and deployment. 
+              Create scalable web applications in record time.
             </p>
             <div className='mt-10 flex items-center justify-center gap-x-6'>
               <Button size='lg' variant='outline' asChild>
@@ -24,16 +25,16 @@ export default function Hero() {
               </Button>
               <Button size='lg' variant='default' asChild>
                 <WaspRouterLink to={routes.SignupRoute.to}>
-                  Get Started <span aria-hidden='true'>→</span>
+                  Get Started Free <span aria-hidden='true'>→</span>
                 </WaspRouterLink>
               </Button>
             </div>
           </div>
-          <div className='mt-14 flow-root sm:mt-14'>
+          {/* <div className='mt-14 flow-root sm:mt-14'>
             <div className='hidden md:flex m-2 justify-center rounded-xl lg:-m-4 lg:rounded-2xl lg:p-4'>
               <img
                 src={openSaasBannerLight}
-                alt='App screenshot'
+                alt='LaunchPike dashboard screenshot'
                 width={1000}
                 height={530}
                 loading='lazy'
@@ -41,14 +42,14 @@ export default function Hero() {
               />
               <img
                 src={openSaasBannerDark}
-                alt='App screenshot'
+                alt='LaunchPike dashboard screenshot'
                 width={1000}
                 height={530}
                 loading='lazy'
                 className='rounded-md shadow-2xl ring-1 ring-gray-900/10 hidden dark:block'
               />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

@@ -5,8 +5,8 @@ import aiReady from '../client/static/assets/aiready.webp';
 export default function AIReady() {
   return (
     <HighlightedFeature
-      name='Example Feature Highlight'
-      description='Yo! Use this component to show off the most important features in your app.'
+      name='Ready-made Solutions for Quick Start'
+      description='LaunchPike provides all the necessary components to create a full-featured SaaS product. From authentication to deployment - everything is already configured and ready to use.'
       highlightedComponent={<AIReadyExample />}
       direction='row-reverse'
     />
@@ -16,8 +16,8 @@ export default function AIReady() {
 const AIReadyExample = () => {
   return (
     <div className='w-full'>
-      <img src={aiReady} alt='AI Ready' className='dark:hidden' />
-      <img src={aiReadyDark} alt='AI Ready' className='hidden dark:block' />
+      <img src={aiReady} alt='LaunchPike ready-made solutions' className='dark:hidden' />
+      <img src={aiReadyDark} alt='LaunchPike ready-made solutions' className='hidden dark:block' />
     </div>
   );
 };

@@ -65,7 +65,7 @@ export default function NavBar({ navigationItems }: { navigationItems: Navigatio
                     'ml-2 text-xs': isScrolled,
                   })}
                 >
-                  Your SaaS
+                  LaunchPike
                 </span>
               </WaspRouterLink>
 
