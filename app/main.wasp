@@ -1,24 +1,24 @@
-app OpenSaaS {
+app LaunchPike {
   wasp: {
     version: "^0.17.0"
   },
 
-  title: "Launchpike",
+  title: "LaunchPike - OpenSaaS Template",
 
   head: [
     "<link rel='icon' href='/favicon.ico' />",
     "<meta charset='utf-8' />",
-    "<meta name='description' content='Your apps main description and features.' />",
-    "<meta name='author' content='Your (App) Name' />",
-    "<meta name='keywords' content='saas, solution, product, app, service' />",
+    "<meta name='description' content='Full-featured OpenSaaS template with ready-made solutions for authentication, payments, analytics, and deployment.' />",
+    "<meta name='author' content='LaunchPike' />",
+    "<meta name='keywords' content='saas, opensaas, template, wasp, react, nodejs, prisma, stripe, analytics' />",
     
     "<meta property='og:type' content='website' />",
-    "<meta property='og:title' content='Your Open SaaS App' />",
-    "<meta property='og:site_name' content='Your Open SaaS App' />",
-    "<meta property='og:url' content='https://your-saas-app.com' />",
-    "<meta property='og:description' content='Your apps main description and features.' />",
-    "<meta property='og:image' content='https://your-saas-app.com/public-banner.webp' />",
-    "<meta name='twitter:image' content='https://your-saas-app.com/public-banner.webp' />",
+    "<meta property='og:title' content='LaunchPike - OpenSaaS Template' />",
+    "<meta property='og:site_name' content='LaunchPike' />",
+    "<meta property='og:url' content='https://launchpike.com' />",
+    "<meta property='og:description' content='Full-featured OpenSaaS template with ready-made solutions for authentication, payments, analytics, and deployment.' />",
+    "<meta property='og:image' content='https://launchpike.com/public-banner.webp' />",
+    "<meta name='twitter:image' content='https://launchpike.com/public-banner.webp' />",
     "<meta name='twitter:image:width' content='800' />",
     "<meta name='twitter:image:height' content='400' />",
     "<meta name='twitter:card' content='summary_large_image' />",
@@ -38,8 +38,8 @@ app OpenSaaS {
       //   (RequestPasswordReset(Route|Page), PasswordReset(Route|Page), EmailVerification(Route|Page))
       email: {
         fromField: {
-          name: "Open SaaS App",
-          email: "me@example.com"
+          name: "LaunchPike",
+          email: "noreply@launchpike.com"
         },
         emailVerification: {
           clientRoute: EmailVerificationRoute,
@@ -89,9 +89,9 @@ app OpenSaaS {
     //   Once you are ready for production, switch to e.g. "SendGrid" or "Mailgun" providers. Check out https://docs.opensaas.sh/guides/email-sending/ .
     provider: Dummy,
     defaultFrom: {
-      name: "Open SaaS App",
+      name: "LaunchPike",
       // When using a real provider, e.g. SendGrid, you must use the same email address that you configured your account to send out emails with!
-      email: "me@example.com"
+      email: "noreply@launchpike.com"
     },
   },
 }
