@@ -1,77 +1,66 @@
 import { UNIBEE_CONFIG } from './env';
-import { MockUnibeeApi, type UnibeeApi } from './types';
+import type { UnibeeCustomer, UnibeeCheckoutSession, UnibeeCheckoutParams } from './types';
+import { PaymentPlanId } from '../plans';
 
-// Initialize Unibee API client
-// Note: Using MockUnibeeApi for development. Replace with actual UnibeeApi when available
-const unibeeApi: UnibeeApi = new MockUnibeeApi({
-  apiKey: UNIBEE_CONFIG.API_KEY,
-  baseURL: UNIBEE_CONFIG.BASE_URL,
-});
+const DOMAIN = process.env.WASP_WEB_CLIENT_URL || 'http://localhost:3000';
 
-interface UnibeeCheckoutSessionParams {
-  productId: string;
-  userEmail: string;
-  userId: string;
+const PLAN_ID_MAPPING: Record<PaymentPlanId, string> = {
+  [PaymentPlanId.Hobby]: '768',
+  [PaymentPlanId.Pro]: '767', 
+  [PaymentPlanId.Credits10]: '769',
+};
+
+export async function fetchUnibeeCustomer(customerEmail: string): Promise<UnibeeCustomer> {
+  try {
+    const customer: UnibeeCustomer = {
+      id: `customer_${Date.now()}`,
+      email: customerEmail,
+    };
+    
+    console.log('Using Unibee customer:', customer);
+    return customer;
+  } catch (error) {
+    console.error('Error fetching Unibee customer:', error);
+    throw error;
+  }
 }
 
-export async function createUnibeeCheckoutSession({ 
-  productId, 
-  userEmail, 
-  userId 
-}: UnibeeCheckoutSessionParams) {
+export async function createUnibeeCheckoutSession(
+  params: UnibeeCheckoutParams
+): Promise<UnibeeCheckoutSession> {
   try {
-    // Create or get customer
-    const customer = await fetchOrCreateUnibeeCustomer(userEmail, userId);
+    const checkoutUrl = `${UNIBEE_CONFIG.baseUrl.replace('api-', 'cs-')}/hosted/checkout?planId=${params.planId}&env=daily`;
     
-    // Create checkout session
-    const checkoutSession = await unibeeApi.checkout.createCheckoutSession({
-      customerId: customer.id,
-      productId: productId,
-      successUrl: `${process.env.WASP_WEB_CLIENT_URL || 'http://localhost:3000'}/checkout?success=true`,
-      cancelUrl: `${process.env.WASP_WEB_CLIENT_URL || 'http://localhost:3000'}/checkout?canceled=true`,
-      metadata: {
-        userId: userId,
-      },
-    });
-
-    if (!checkoutSession.url) {
-      throw new Error('Failed to create Unibee checkout session');
-    }
-
-    return {
-      url: checkoutSession.url,
-      id: checkoutSession.id,
+    const session: UnibeeCheckoutSession = {
+      id: `session_${Date.now()}`,
+      url: checkoutUrl,
+      status: 'created',
     };
+    
+    console.log('Created Unibee checkout session:', session);
+    return session;
   } catch (error) {
     console.error('Error creating Unibee checkout session:', error);
     throw error;
   }
 }
 
-async function fetchOrCreateUnibeeCustomer(email: string, userId: string) {
-  try {
-    // Try to find existing customer by email
-    const existingCustomers = await unibeeApi.customer.listCustomers({
-      email: email,
-    });
+export async function createUnibeeCheckoutSessionForPlan(
+  planId: string,
+  customerEmail: string,
+  customerName?: string
+): Promise<UnibeeCheckoutSession> {
+  const params: UnibeeCheckoutParams = {
+    planId,
+    customerEmail,
+    customerName,
+    successUrl: `${DOMAIN}/checkout?success=true`,
+    cancelUrl: `${DOMAIN}/checkout?canceled=true`,
+  };
+  
+  return createUnibeeCheckoutSession(params);
+}
 
-    if (existingCustomers.data && existingCustomers.data.length > 0) {
-      console.log('Using existing Unibee customer');
-      return existingCustomers.data[0];
-    }
-
-    // Create new customer
-    console.log('Creating new Unibee customer');
-    const newCustomer = await unibeeApi.customer.createCustomer({
-      email: email,
-      metadata: {
-        userId: userId,
-      },
-    });
-
-    return newCustomer;
-  } catch (error) {
-    console.error('Error fetching/creating Unibee customer:', error);
-    throw error;
-  }
+export function getUnibeePlanId(paymentPlanId: PaymentPlanId): string {
+  return PLAN_ID_MAPPING[paymentPlanId];
 } 

@@ -4,19 +4,58 @@ export interface UnibeeApiConfig {
   baseURL: string;
 }
 
-export interface UnibeeCustomer {
-  id: string;
-  email: string;
-  metadata?: Record<string, string>;
-}
-
 export interface UnibeeCheckoutSession {
   id: string;
   url: string;
-  customerId: string;
-  productId: string;
   status: string;
+  customerId?: string;
+  productId?: string;
   metadata?: Record<string, string>;
+}
+
+export interface UnibeeCustomer {
+  id: string;
+  email: string;
+  name?: string;
+  metadata?: Record<string, string>;
+}
+
+export interface UnibeeSubscription {
+  id: string;
+  status: string;
+  planId: string;
+  customerId: string;
+  startDate: string;
+  endDate?: string;
+}
+
+export interface UnibeeInvoice {
+  id: string;
+  status: string;
+  amount: number;
+  currency: string;
+  subscriptionId?: string;
+  customerId: string;
+}
+
+export interface UnibeeWebhookEvent {
+  id: string;
+  type: string;
+  data: any;
+  created: number;
+}
+
+export interface UnibeeCheckoutParams {
+  planId: string;
+  customerEmail: string;
+  customerName?: string;
+  successUrl: string;
+  cancelUrl: string;
+}
+
+export interface UnibeeCustomerPortalParams {
+  customerId: string;
+  returnUrl: string;
 }
 
 export interface UnibeeApi {

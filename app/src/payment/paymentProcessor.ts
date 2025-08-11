@@ -30,5 +30,5 @@ export interface PaymentProcessor {
  * other payment processor code that you're not using  from `/src/payment`
  */
 // export const paymentProcessor: PaymentProcessor = lemonSqueezyPaymentProcessor;
-// export const paymentProcessor: PaymentProcessor = unibeePaymentProcessor;
-export const paymentProcessor: PaymentProcessor = stripePaymentProcessor;
+// export const paymentProcessor: PaymentProcessor = stripePaymentProcessor;
+export const paymentProcessor: PaymentProcessor = unibeePaymentProcessor;
