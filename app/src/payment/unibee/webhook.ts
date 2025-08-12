@@ -17,31 +17,53 @@ import {
 } from './webhookPayload';
 
 export const unibeeWebhook: PaymentsWebhook = async (request, response, context) => {
+  console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
+  console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
+  console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
+  console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
+  console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
+  console.log('=== UNIBEE WEBHOOK RECEIVED ===');
+  console.log('Method:', request.method);
+  console.log('URL:', request.url);
+  console.log('Headers:', JSON.stringify(request.headers, null, 2));
+  console.log('Body:', JSON.stringify(request.body, null, 2));
+  console.log('Body type:', typeof request.body);
+  console.log('Body keys:', request.body ? Object.keys(request.body) : 'No body');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Request IP:', request.ip);
+  console.log('User Agent:', request.headers['user-agent']);
+  
   try {
-    console.log('=== UNIBEE WEBHOOK RECEIVED ===');
-    console.log('Headers:', request.headers);
-    console.log('Body:', JSON.stringify(request.body, null, 2));
+    const authHeader = request.headers.authorization;
+    const expectedApiKey = requireNodeEnvVar('UNIBEE_PUBLIC_KEY');
     
-    // Верифицируем webhook (в реальном приложении здесь должна быть проверка подписи)
-    const webhookSecret = requireNodeEnvVar('UNIBEE_WEBHOOK_SECRET');
-    console.log('Webhook secret configured:', !!webhookSecret);
+    console.log('Auth header:', authHeader);
+    console.log('Expected API key:', expectedApiKey);
     
-    // Парсим webhook payload
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('Missing or invalid Authorization header');
+      return response.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const receivedApiKey = authHeader.replace('Bearer ', '');
+    if (receivedApiKey !== expectedApiKey) {
+      console.error('Invalid API key');
+      console.error('Received:', receivedApiKey);
+      console.error('Expected:', expectedApiKey);
+      return response.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    console.log('Webhook verified successfully with API key');
+    
     const { eventName, data } = parseUnibeeWebhookPayload(request.body);
     const prismaUserDelegate = context.entities.User;
     
     console.log(`Processing Unibee webhook: ${eventName}`, data);
     
-    // Нормализуем название события
     const normalizedEventName = eventName.replace(/[._]/g, '').toLowerCase();
     console.log('Normalized event name:', normalizedEventName);
     
-    // Обрабатываем различные типы событий
     switch (normalizedEventName) {
-      case 'ordercreated':
-        console.log('Handling order.created event');
-        await handleOrderCreated(data as UnibeeOrderData, prismaUserDelegate);
-        break;
       case 'subscriptioncreated':
         console.log('Handling subscription.created event');
         await handleSubscriptionCreated(data as UnibeeSubscriptionData, prismaUserDelegate);
@@ -54,23 +76,19 @@ export const unibeeWebhook: PaymentsWebhook = async (request, response, context)
         console.log('Handling subscription.cancelled event');
         await handleSubscriptionCancelled(data as UnibeeSubscriptionData, prismaUserDelegate);
         break;
-      case 'subscriptionpaymentsucceeded':
-        console.log('Handling subscription.payment_succeeded event');
-        await handleSubscriptionPaymentSucceeded(data as UnibeeSubscriptionData, prismaUserDelegate);
-        break;
-      case 'subscriptionpaymentfailed':
-        console.log('Handling subscription.payment_failed event');
-        await handleSubscriptionPaymentFailed(data as UnibeeSubscriptionData, prismaUserDelegate);
+      case 'invoicepaid':
+        console.log('Handling invoice.paid event');
+        await handleInvoicePaid(data as any, prismaUserDelegate);
         break;
       default:
         console.log(`Unhandled Unibee webhook event: ${eventName}`);
         console.log('Normalized event name:', normalizedEventName);
         console.log('Available event types:', Object.keys(request.body));
-        // Не выбрасываем ошибку для необработанных событий
+        console.log('Full request body structure:', JSON.stringify(request.body, null, 2));
     }
     
     console.log('=== UNIBEE WEBHOOK PROCESSED SUCCESSFULLY ===');
-    return response.json({ received: true });
+    return response.json({ success: true });
   } catch (err) {
     console.error('=== UNIBEE WEBHOOK ERROR ===');
     console.error('Error details:', err);
@@ -84,27 +102,22 @@ export const unibeeWebhook: PaymentsWebhook = async (request, response, context)
   }
 };
 
-// Middleware для Unibee webhook
 export const unibeeMiddlewareConfigFn: MiddlewareConfigFn = (middlewareConfig) => {
-  // Для Unibee используем стандартный JSON middleware
   return middlewareConfig;
 };
 
-// Обработчик создания заказа (для разовых платежей)
 async function handleOrderCreated(
   order: UnibeeOrderData,
   prismaUserDelegate: PrismaClient['user']
 ) {
   console.log('Processing order created:', order.id);
   
-  // Обрабатываем каждый элемент заказа
   for (const item of order.items) {
     const planId = getPlanIdByVariantId(item.variant_id);
     const plan = paymentPlans[planId];
     const { numOfCreditsPurchased } = getPlanEffectPaymentDetails({ planId, planEffect: plan.effect });
     
     if (numOfCreditsPurchased) {
-      // Это покупка кредитов
       await createOrUpdateUserUnibeePaymentDetails(
         {
           userUnibeeId: order.customer_id,
@@ -120,7 +133,6 @@ async function handleOrderCreated(
   }
 }
 
-// Обработчик создания подписки
 async function handleSubscriptionCreated(
   subscription: UnibeeSubscriptionData,
   prismaUserDelegate: PrismaClient['user']
@@ -144,7 +156,6 @@ async function handleSubscriptionCreated(
   console.log(`Activated subscription ${planId} for user ${subscription.customer_email}`);
 }
 
-// Обработчик обновления подписки
 async function handleSubscriptionUpdated(
   subscription: UnibeeSubscriptionData,
   prismaUserDelegate: PrismaClient['user']
@@ -183,7 +194,6 @@ async function handleSubscriptionUpdated(
   console.log(`Updated subscription ${planId} status to ${subscriptionStatus} for user ${subscription.customer_email}`);
 }
 
-// Обработчик отмены подписки
 async function handleSubscriptionCancelled(
   subscription: UnibeeSubscriptionData,
   prismaUserDelegate: PrismaClient['user']
@@ -202,7 +212,6 @@ async function handleSubscriptionCancelled(
   
   console.log(`Cancelled subscription for user ${subscription.customer_email}`);
   
-  // Отправляем email с предложением вернуться
   try {
     await emailSender.send({
       to: subscription.customer_email,
@@ -215,7 +224,6 @@ async function handleSubscriptionCancelled(
   }
 }
 
-// Обработчик успешного платежа по подписке
 async function handleSubscriptionPaymentSucceeded(
   subscription: UnibeeSubscriptionData,
   prismaUserDelegate: PrismaClient['user']
@@ -238,7 +246,6 @@ async function handleSubscriptionPaymentSucceeded(
   console.log(`Confirmed payment for subscription ${planId} for user ${subscription.customer_email}`);
 }
 
-// Обработчик неудачного платежа по подписке
 async function handleSubscriptionPaymentFailed(
   subscription: UnibeeSubscriptionData,
   prismaUserDelegate: PrismaClient['user']
@@ -256,4 +263,29 @@ async function handleSubscriptionPaymentFailed(
   );
   
   console.log(`Marked subscription as past due for user ${subscription.customer_email}`);
+}
+
+async function handleInvoicePaid(
+  invoice: any,
+  prismaUserDelegate: PrismaClient['user']
+) {
+  console.log('Processing invoice.paid event:', invoice);
+  
+  if (invoice.subscription) {
+    const subscription = invoice.subscription;
+    const planId = getPlanIdByVariantId(subscription.planId?.toString() || '');
+    
+    await createOrUpdateUserUnibeePaymentDetails(
+      {
+        userUnibeeId: subscription.userId?.toString() || '',
+        userEmail: invoice.user?.email || '',
+        subscriptionPlan: planId,
+        subscriptionStatus: SubscriptionStatus.Active,
+        datePaid: new Date(invoice.createTime * 1000),
+      },
+      prismaUserDelegate
+    );
+    
+    console.log(`Activated subscription ${planId} for user ${invoice.user?.email}`);
+  }
 } 

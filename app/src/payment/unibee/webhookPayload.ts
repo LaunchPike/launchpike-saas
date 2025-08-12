@@ -1,6 +1,5 @@
 import { PaymentPlanId, paymentPlans, type PaymentPlanEffect } from '../plans';
 
-// Основные типы событий Unibee
 export type UnibeeWebhookEventType = 
   | 'order.created' | 'order_created' | 'orderCreated'
   | 'order.updated' | 'order_updated' | 'orderUpdated'
@@ -15,7 +14,6 @@ export type UnibeeWebhookEventType =
   | 'subscription.payment_succeeded' | 'subscription_payment_succeeded' | 'subscriptionPaymentSucceeded'
   | 'subscription.payment_refunded' | 'subscription_payment_refunded' | 'subscriptionPaymentRefunded';
 
-// Базовый интерфейс для всех webhook событий
 export interface UnibeeWebhookEvent {
   id: string;
   type: UnibeeWebhookEventType;
@@ -23,7 +21,6 @@ export interface UnibeeWebhookEvent {
   created_at: string;
 }
 
-// Данные о заказе
 export interface UnibeeOrderData {
   id: string;
   customer_id: string;
@@ -37,7 +34,6 @@ export interface UnibeeOrderData {
   metadata?: Record<string, any>;
 }
 
-// Элемент заказа
 export interface UnibeeOrderItem {
   id: string;
   variant_id: string;
@@ -47,7 +43,6 @@ export interface UnibeeOrderItem {
   metadata?: Record<string, any>;
 }
 
-// Данные о подписке
 export interface UnibeeSubscriptionData {
   id: string;
   customer_id: string;
@@ -65,7 +60,6 @@ export interface UnibeeSubscriptionData {
   metadata?: Record<string, any>;
 }
 
-// Данные о платеже
 export interface UnibeePaymentData {
   id: string;
   customer_id: string;
@@ -77,7 +71,6 @@ export interface UnibeePaymentData {
   metadata?: Record<string, any>;
 }
 
-// Функция для парсинга webhook payload
 export function parseUnibeeWebhookPayload(rawEvent: any): {
   eventName: UnibeeWebhookEventType;
   data: UnibeeOrderData | UnibeeSubscriptionData | UnibeePaymentData;
@@ -98,9 +91,7 @@ export function parseUnibeeWebhookPayload(rawEvent: any): {
   }
 }
 
-// Функция для определения плана по variant_id
 export function getPlanIdByVariantId(variantId: string): PaymentPlanId {
-  // Маппинг Unibee variant ID на наши планы
   const variantToPlanMapping: Record<string, PaymentPlanId> = {
     '768': PaymentPlanId.Hobby,    // Hobby plan
     '767': PaymentPlanId.Pro,      // Pro plan
@@ -115,7 +106,6 @@ export function getPlanIdByVariantId(variantId: string): PaymentPlanId {
   return planId;
 }
 
-// Функция для получения деталей плана
 export function getPlanEffectPaymentDetails({
   planId,
   planEffect,

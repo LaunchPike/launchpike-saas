@@ -37,13 +37,11 @@ export const createOrUpdateUserUnibeePaymentDetails = async (
   },
   userDelegate: PrismaClient['user']
 ) => {
-  // Сначала пытаемся найти пользователя по Unibee ID
   let user = await userDelegate.findFirst({
     where: { paymentProcessorUserId: userUnibeeId }
   });
 
   if (!user) {
-    // Если не нашли по Unibee ID, ищем по email
     user = await userDelegate.findFirst({
       where: { email: userEmail }
     });
@@ -53,7 +51,6 @@ export const createOrUpdateUserUnibeePaymentDetails = async (
     throw new Error(`User not found with Unibee ID: ${userUnibeeId} or email: ${userEmail}`);
   }
 
-  // Обновляем данные пользователя
   return userDelegate.update({
     where: { id: user.id },
     data: {

@@ -212,6 +212,12 @@ api paymentsWebhook {
   middlewareConfigFn: import { paymentsMiddlewareConfigFn } from "@src/payment/webhook",
   httpRoute: (POST, "/payments-webhook")
 }
+
+api testWebhook {
+  fn: import { testWebhook } from "@src/payment/testWebhook",
+  entities: [User],
+  httpRoute: (POST, "/test-webhook")
+}
 //#endregion
 
 //#region File Upload
