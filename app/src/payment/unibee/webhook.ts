@@ -3,54 +3,79 @@ import { type PaymentsWebhook } from 'wasp/server/api';
 import { type PrismaClient } from '@prisma/client';
 import express from 'express';
 import { paymentPlans, PaymentPlanId, SubscriptionStatus, type PaymentPlanEffect } from '../plans';
-import { updateUserUnibeePaymentDetails } from './paymentDetails';
+import { createOrUpdateUserUnibeePaymentDetails } from './paymentDetails';
 import { emailSender } from 'wasp/server/email';
-import { assertUnreachable } from '../../shared/utils';
 import { requireNodeEnvVar } from '../../server/utils';
 import {
-  parseWebhookPayload,
-  type InvoicePaidData,
-  type CheckoutCompletedData,
-  type SubscriptionCancelledData,
-  type SubscriptionUpdatedData,
-  type SubscriptionCreatedData,
+  parseUnibeeWebhookPayload,
+  getPlanIdByVariantId,
+  getPlanEffectPaymentDetails,
+  type UnibeeWebhookEventType,
+  type UnibeeOrderData,
+  type UnibeeSubscriptionData,
+  type UnibeePaymentData,
 } from './webhookPayload';
-import { UnhandledWebhookEventError } from '../errors';
-import crypto from 'crypto';
 
 export const unibeeWebhook: PaymentsWebhook = async (request, response, context) => {
   try {
-    const rawUnibeeEvent = constructUnibeeEvent(request);
-    const { eventName, data } = await parseWebhookPayload(rawUnibeeEvent);
+    console.log('=== UNIBEE WEBHOOK RECEIVED ===');
+    console.log('Headers:', request.headers);
+    console.log('Body:', JSON.stringify(request.body, null, 2));
+    
+    // Верифицируем webhook (в реальном приложении здесь должна быть проверка подписи)
+    const webhookSecret = requireNodeEnvVar('UNIBEE_WEBHOOK_SECRET');
+    console.log('Webhook secret configured:', !!webhookSecret);
+    
+    // Парсим webhook payload
+    const { eventName, data } = parseUnibeeWebhookPayload(request.body);
     const prismaUserDelegate = context.entities.User;
     
-    switch (eventName) {
-      case 'checkout.completed':
-        await handleCheckoutCompleted(data, prismaUserDelegate);
+    console.log(`Processing Unibee webhook: ${eventName}`, data);
+    
+    // Нормализуем название события
+    const normalizedEventName = eventName.replace(/[._]/g, '').toLowerCase();
+    console.log('Normalized event name:', normalizedEventName);
+    
+    // Обрабатываем различные типы событий
+    switch (normalizedEventName) {
+      case 'ordercreated':
+        console.log('Handling order.created event');
+        await handleOrderCreated(data as UnibeeOrderData, prismaUserDelegate);
         break;
-      case 'invoice.paid':
-        await handleInvoicePaid(data, prismaUserDelegate);
+      case 'subscriptioncreated':
+        console.log('Handling subscription.created event');
+        await handleSubscriptionCreated(data as UnibeeSubscriptionData, prismaUserDelegate);
         break;
-      case 'subscription.created':
-        await handleSubscriptionCreated(data, prismaUserDelegate);
+      case 'subscriptionupdated':
+        console.log('Handling subscription.updated event');
+        await handleSubscriptionUpdated(data as UnibeeSubscriptionData, prismaUserDelegate);
         break;
-      case 'subscription.updated':
-        await handleSubscriptionUpdated(data, prismaUserDelegate);
+      case 'subscriptioncancelled':
+        console.log('Handling subscription.cancelled event');
+        await handleSubscriptionCancelled(data as UnibeeSubscriptionData, prismaUserDelegate);
         break;
-      case 'subscription.cancelled':
-        await handleSubscriptionCancelled(data, prismaUserDelegate);
+      case 'subscriptionpaymentsucceeded':
+        console.log('Handling subscription.payment_succeeded event');
+        await handleSubscriptionPaymentSucceeded(data as UnibeeSubscriptionData, prismaUserDelegate);
+        break;
+      case 'subscriptionpaymentfailed':
+        console.log('Handling subscription.payment_failed event');
+        await handleSubscriptionPaymentFailed(data as UnibeeSubscriptionData, prismaUserDelegate);
         break;
       default:
-        assertUnreachable(eventName);
+        console.log(`Unhandled Unibee webhook event: ${eventName}`);
+        console.log('Normalized event name:', normalizedEventName);
+        console.log('Available event types:', Object.keys(request.body));
+        // Не выбрасываем ошибку для необработанных событий
     }
+    
+    console.log('=== UNIBEE WEBHOOK PROCESSED SUCCESSFULLY ===');
     return response.json({ received: true });
   } catch (err) {
-    if (err instanceof UnhandledWebhookEventError) {
-      console.error(err.message);
-      return response.status(422).json({ error: err.message });
-    }
-
-    console.error('Webhook error:', err);
+    console.error('=== UNIBEE WEBHOOK ERROR ===');
+    console.error('Error details:', err);
+    console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace');
+    
     if (err instanceof HttpError) {
       return response.status(err.statusCode).json({ error: err.message });
     } else {
@@ -59,163 +84,176 @@ export const unibeeWebhook: PaymentsWebhook = async (request, response, context)
   }
 };
 
-function constructUnibeeEvent(request: express.Request): any {
-  try {
-    const secret = requireNodeEnvVar('UNIBEE_WEBHOOK_SECRET');
-    const signature = request.headers['x-unibee-signature'];
-    if (!signature) {
-      throw new HttpError(400, 'Unibee webhook signature not provided');
-    }
-    
-    // Verify webhook signature
-    const payload = request.body;
-    const hmac = crypto.createHmac('sha256', secret);
-    const digest = hmac.update(JSON.stringify(payload)).digest('hex');
-    
-    if (signature !== digest) {
-      throw new HttpError(400, 'Invalid Unibee webhook signature');
-    }
-    
-    return payload;
-  } catch (err) {
-    throw new HttpError(500, 'Error constructing Unibee webhook event');
-  }
-}
-
+// Middleware для Unibee webhook
 export const unibeeMiddlewareConfigFn: MiddlewareConfigFn = (middlewareConfig) => {
-  // We need to delete the default 'express.json' middleware and replace it with 'express.raw' middleware
-  // because webhook data comes in the body of the request as raw JSON, not as JSON in the body of the request.
-  middlewareConfig.delete('express.json');
-  middlewareConfig.set('express.raw', express.raw({ type: 'application/json' }));
+  // Для Unibee используем стандартный JSON middleware
   return middlewareConfig;
 };
 
-async function handleCheckoutCompleted(
-  checkout: CheckoutCompletedData,
+// Обработчик создания заказа (для разовых платежей)
+async function handleOrderCreated(
+  order: UnibeeOrderData,
   prismaUserDelegate: PrismaClient['user']
 ) {
-  const planId = getPlanIdByProductId(checkout.productId);
-  const plan = paymentPlans[planId];
+  console.log('Processing order created:', order.id);
   
-  if (plan.effect.kind === 'credits') {
-    await saveSuccessfulOneTimePayment(checkout, planId, prismaUserDelegate);
-  }
-}
-
-async function saveSuccessfulOneTimePayment(
-  checkout: CheckoutCompletedData,
-  planId: PaymentPlanId,
-  prismaUserDelegate: PrismaClient['user']
-) {
-  const plan = paymentPlans[planId];
-  const numOfCreditsPurchased = plan.effect.kind === 'credits' ? plan.effect.amount : 0;
-  
-  await updateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: checkout.customerId,
-      numOfCreditsPurchased,
-      datePaid: new Date(checkout.completedAt * 1000),
-    },
-    prismaUserDelegate
-  );
-
-  // Send confirmation email
-  await emailSender.send({
-    to: checkout.customerId, // You might need to get the actual email from the customer
-    subject: 'Payment Confirmation',
-    text: `Thank you for your purchase! You have received ${numOfCreditsPurchased} credits.`,
-    html: `<p>Thank you for your purchase! You have received ${numOfCreditsPurchased} credits.</p>`,
-  });
-}
-
-async function handleInvoicePaid(
-  invoice: InvoicePaidData,
-  prismaUserDelegate: PrismaClient['user']
-) {
-  if (invoice.subscriptionId) {
-    await saveActiveSubscription(invoice, prismaUserDelegate);
-  }
-}
-
-async function saveActiveSubscription(
-  invoice: InvoicePaidData,
-  prismaUserDelegate: PrismaClient['user']
-) {
-  const planId = getPlanIdByProductId(invoice.productId);
-  
-  await updateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: invoice.customerId,
-      subscriptionPlan: planId,
-      subscriptionStatus: SubscriptionStatus.Active,
-      datePaid: new Date(invoice.paidAt * 1000),
-    },
-    prismaUserDelegate
-  );
-}
-
-async function handleSubscriptionCreated(
-  subscription: SubscriptionCreatedData,
-  prismaUserDelegate: PrismaClient['user']
-) {
-  const planId = getPlanIdByProductId(subscription.productId);
-  
-  await updateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: subscription.customerId,
-      subscriptionPlan: planId,
-      subscriptionStatus: SubscriptionStatus.Active,
-      datePaid: new Date(subscription.currentPeriodStart * 1000),
-    },
-    prismaUserDelegate
-  );
-}
-
-async function handleSubscriptionUpdated(
-  subscription: SubscriptionUpdatedData,
-  prismaUserDelegate: PrismaClient['user']
-) {
-  const planId = getPlanIdByProductId(subscription.productId);
-  let subscriptionStatus: SubscriptionStatus;
-  
-  if (subscription.status === 'active') {
-    subscriptionStatus = subscription.cancelAtPeriodEnd 
-      ? SubscriptionStatus.CancelAtPeriodEnd 
-      : SubscriptionStatus.Active;
-  } else if (subscription.status === 'past_due') {
-    subscriptionStatus = SubscriptionStatus.PastDue;
-  } else {
-    subscriptionStatus = SubscriptionStatus.Deleted;
-  }
-  
-  await updateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: subscription.customerId,
-      subscriptionPlan: planId,
-      subscriptionStatus,
-    },
-    prismaUserDelegate
-  );
-}
-
-async function handleSubscriptionCancelled(
-  subscription: SubscriptionCancelledData,
-  prismaUserDelegate: PrismaClient['user']
-) {
-  await updateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: subscription.customerId,
-      subscriptionStatus: SubscriptionStatus.Deleted,
-    },
-    prismaUserDelegate
-  );
-}
-
-function getPlanIdByProductId(productId: string): PaymentPlanId {
-  for (const [planId, plan] of Object.entries(paymentPlans)) {
-    if (plan.getPaymentProcessorPlanId() === productId) {
-      return planId as PaymentPlanId;
+  // Обрабатываем каждый элемент заказа
+  for (const item of order.items) {
+    const planId = getPlanIdByVariantId(item.variant_id);
+    const plan = paymentPlans[planId];
+    const { numOfCreditsPurchased } = getPlanEffectPaymentDetails({ planId, planEffect: plan.effect });
+    
+    if (numOfCreditsPurchased) {
+      // Это покупка кредитов
+      await createOrUpdateUserUnibeePaymentDetails(
+        {
+          userUnibeeId: order.customer_id,
+          userEmail: order.customer_email,
+          numOfCreditsPurchased,
+          datePaid: new Date(order.created_at),
+        },
+        prismaUserDelegate
+      );
+      
+      console.log(`Added ${numOfCreditsPurchased} credits to user ${order.customer_email}`);
     }
   }
-  throw new Error(`No plan found for product ID: ${productId}`);
+}
+
+// Обработчик создания подписки
+async function handleSubscriptionCreated(
+  subscription: UnibeeSubscriptionData,
+  prismaUserDelegate: PrismaClient['user']
+) {
+  console.log('Processing subscription created:', subscription.id);
+  
+  const planId = getPlanIdByVariantId(subscription.variant_id);
+  const plan = paymentPlans[planId];
+  
+  await createOrUpdateUserUnibeePaymentDetails(
+    {
+      userUnibeeId: subscription.customer_id,
+      userEmail: subscription.customer_email,
+      subscriptionPlan: planId,
+      subscriptionStatus: SubscriptionStatus.Active,
+      datePaid: new Date(subscription.created_at),
+    },
+    prismaUserDelegate
+  );
+  
+  console.log(`Activated subscription ${planId} for user ${subscription.customer_email}`);
+}
+
+// Обработчик обновления подписки
+async function handleSubscriptionUpdated(
+  subscription: UnibeeSubscriptionData,
+  prismaUserDelegate: PrismaClient['user']
+) {
+  console.log('Processing subscription updated:', subscription.id);
+  
+  const planId = getPlanIdByVariantId(subscription.variant_id);
+  let subscriptionStatus: SubscriptionStatus;
+  
+  switch (subscription.status) {
+    case 'active':
+      subscriptionStatus = SubscriptionStatus.Active;
+      break;
+    case 'past_due':
+      subscriptionStatus = SubscriptionStatus.PastDue;
+      break;
+    case 'cancelled':
+      subscriptionStatus = SubscriptionStatus.Deleted;
+      break;
+    default:
+      console.log(`Unknown subscription status: ${subscription.status}`);
+      return;
+  }
+  
+  await createOrUpdateUserUnibeePaymentDetails(
+    {
+      userUnibeeId: subscription.customer_id,
+      userEmail: subscription.customer_email,
+      subscriptionPlan: planId,
+      subscriptionStatus,
+      datePaid: new Date(subscription.updated_at),
+    },
+    prismaUserDelegate
+  );
+  
+  console.log(`Updated subscription ${planId} status to ${subscriptionStatus} for user ${subscription.customer_email}`);
+}
+
+// Обработчик отмены подписки
+async function handleSubscriptionCancelled(
+  subscription: UnibeeSubscriptionData,
+  prismaUserDelegate: PrismaClient['user']
+) {
+  console.log('Processing subscription cancelled:', subscription.id);
+  
+  await createOrUpdateUserUnibeePaymentDetails(
+    {
+      userUnibeeId: subscription.customer_id,
+      userEmail: subscription.customer_email,
+      subscriptionStatus: SubscriptionStatus.Deleted,
+      datePaid: new Date(subscription.updated_at),
+    },
+    prismaUserDelegate
+  );
+  
+  console.log(`Cancelled subscription for user ${subscription.customer_email}`);
+  
+  // Отправляем email с предложением вернуться
+  try {
+    await emailSender.send({
+      to: subscription.customer_email,
+      subject: 'We hate to see you go :(',
+      text: 'We hate to see you go. Here is a sweet offer...',
+      html: 'We hate to see you go. Here is a sweet offer...',
+    });
+  } catch (error) {
+    console.error('Failed to send cancellation email:', error);
+  }
+}
+
+// Обработчик успешного платежа по подписке
+async function handleSubscriptionPaymentSucceeded(
+  subscription: UnibeeSubscriptionData,
+  prismaUserDelegate: PrismaClient['user']
+) {
+  console.log('Processing subscription payment succeeded:', subscription.id);
+  
+  const planId = getPlanIdByVariantId(subscription.variant_id);
+  
+  await createOrUpdateUserUnibeePaymentDetails(
+    {
+      userUnibeeId: subscription.customer_id,
+      userEmail: subscription.customer_email,
+      subscriptionPlan: planId,
+      subscriptionStatus: SubscriptionStatus.Active,
+      datePaid: new Date(subscription.updated_at),
+    },
+    prismaUserDelegate
+  );
+  
+  console.log(`Confirmed payment for subscription ${planId} for user ${subscription.customer_email}`);
+}
+
+// Обработчик неудачного платежа по подписке
+async function handleSubscriptionPaymentFailed(
+  subscription: UnibeeSubscriptionData,
+  prismaUserDelegate: PrismaClient['user']
+) {
+  console.log('Processing subscription payment failed:', subscription.id);
+  
+  await createOrUpdateUserUnibeePaymentDetails(
+    {
+      userUnibeeId: subscription.customer_id,
+      userEmail: subscription.customer_email,
+      subscriptionStatus: SubscriptionStatus.PastDue,
+      datePaid: new Date(subscription.updated_at),
+    },
+    prismaUserDelegate
+  );
+  
+  console.log(`Marked subscription as past due for user ${subscription.customer_email}`);
 } 

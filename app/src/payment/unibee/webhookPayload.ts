@@ -1,100 +1,137 @@
-import * as z from 'zod';
-import { UnhandledWebhookEventError } from '../errors';
-import { HttpError } from 'wasp/server';
+import { PaymentPlanId, paymentPlans, type PaymentPlanEffect } from '../plans';
 
-export async function parseWebhookPayload(rawUnibeeEvent: any) {
+// Основные типы событий Unibee
+export type UnibeeWebhookEventType = 
+  | 'order.created' | 'order_created' | 'orderCreated'
+  | 'order.updated' | 'order_updated' | 'orderUpdated'
+  | 'subscription.created' | 'subscription_created' | 'subscriptionCreated'
+  | 'subscription.updated' | 'subscription_updated' | 'subscriptionUpdated'
+  | 'subscription.cancelled' | 'subscription_cancelled' | 'subscriptionCancelled'
+  | 'subscription.resumed' | 'subscription_resumed' | 'subscriptionResumed'
+  | 'subscription.paused' | 'subscription_paused' | 'subscriptionPaused'
+  | 'subscription.expired' | 'subscription_expired' | 'subscriptionExpired'
+  | 'subscription.trial_ended' | 'subscription_trial_ended' | 'subscriptionTrialEnded'
+  | 'subscription.payment_failed' | 'subscription_payment_failed' | 'subscriptionPaymentFailed'
+  | 'subscription.payment_succeeded' | 'subscription_payment_succeeded' | 'subscriptionPaymentSucceeded'
+  | 'subscription.payment_refunded' | 'subscription_payment_refunded' | 'subscriptionPaymentRefunded';
+
+// Базовый интерфейс для всех webhook событий
+export interface UnibeeWebhookEvent {
+  id: string;
+  type: UnibeeWebhookEventType;
+  data: any;
+  created_at: string;
+}
+
+// Данные о заказе
+export interface UnibeeOrderData {
+  id: string;
+  customer_id: string;
+  customer_email: string;
+  status: string;
+  total: number;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+  items: UnibeeOrderItem[];
+  metadata?: Record<string, any>;
+}
+
+// Элемент заказа
+export interface UnibeeOrderItem {
+  id: string;
+  variant_id: string;
+  variant_name: string;
+  price: number;
+  quantity: number;
+  metadata?: Record<string, any>;
+}
+
+// Данные о подписке
+export interface UnibeeSubscriptionData {
+  id: string;
+  customer_id: string;
+  customer_email: string;
+  status: string;
+  variant_id: string;
+  variant_name: string;
+  price: number;
+  currency: string;
+  trial_ends_at?: string;
+  renews_at?: string;
+  ends_at?: string;
+  created_at: string;
+  updated_at: string;
+  metadata?: Record<string, any>;
+}
+
+// Данные о платеже
+export interface UnibeePaymentData {
+  id: string;
+  customer_id: string;
+  customer_email: string;
+  status: string;
+  amount: number;
+  currency: string;
+  created_at: string;
+  metadata?: Record<string, any>;
+}
+
+// Функция для парсинга webhook payload
+export function parseUnibeeWebhookPayload(rawEvent: any): {
+  eventName: UnibeeWebhookEventType;
+  data: UnibeeOrderData | UnibeeSubscriptionData | UnibeePaymentData;
+} {
   try {
-    const event = await genericUnibeeEventSchema.parseAsync(rawUnibeeEvent);
-    switch (event.type) {
-      case 'subscription.created':
-        const subscription = await subscriptionCreatedDataSchema.parseAsync(event.data);
-        return { eventName: event.type, data: subscription };
-      case 'subscription.updated':
-        const updatedSubscription = await subscriptionUpdatedDataSchema.parseAsync(event.data);
-        return { eventName: event.type, data: updatedSubscription };
-      case 'subscription.cancelled':
-        const cancelledSubscription = await subscriptionCancelledDataSchema.parseAsync(event.data);
-        return { eventName: event.type, data: cancelledSubscription };
-      case 'invoice.paid':
-        const invoice = await invoicePaidDataSchema.parseAsync(event.data);
-        return { eventName: event.type, data: invoice };
-      case 'checkout.completed':
-        const checkout = await checkoutCompletedDataSchema.parseAsync(event.data);
-        return { eventName: event.type, data: checkout };
-      default:
-        throw new UnhandledWebhookEventError(event.type);
+    const event = rawEvent as UnibeeWebhookEvent;
+    
+    if (!event.type || !event.data) {
+      throw new Error('Invalid webhook event structure');
     }
-  } catch (e: unknown) {
-    if (e instanceof UnhandledWebhookEventError) {
-      throw e;
-    } else {
-      console.error(e);
-      throw new HttpError(400, 'Error parsing Unibee event object');
-    }
+
+    return {
+      eventName: event.type,
+      data: event.data,
+    };
+  } catch (error) {
+    throw new Error(`Failed to parse Unibee webhook payload: ${error}`);
   }
 }
 
-const genericUnibeeEventSchema = z.object({
-  type: z.string(),
-  data: z.unknown(),
-  timestamp: z.number(),
-});
+// Функция для определения плана по variant_id
+export function getPlanIdByVariantId(variantId: string): PaymentPlanId {
+  // Маппинг Unibee variant ID на наши планы
+  const variantToPlanMapping: Record<string, PaymentPlanId> = {
+    '768': PaymentPlanId.Hobby,    // Hobby plan
+    '767': PaymentPlanId.Pro,      // Pro plan
+    '769': PaymentPlanId.Credits10, // Credits plan
+  };
 
-const subscriptionCreatedDataSchema = z.object({
-  id: z.string(),
-  customerId: z.string(),
-  productId: z.string(),
-  status: z.string(),
-  currentPeriodStart: z.number(),
-  currentPeriodEnd: z.number(),
-  metadata: z.record(z.string()).optional(),
-});
+  const planId = variantToPlanMapping[variantId];
+  if (!planId) {
+    throw new Error(`No plan found for Unibee variant ID: ${variantId}`);
+  }
 
-const subscriptionUpdatedDataSchema = z.object({
-  id: z.string(),
-  customerId: z.string(),
-  productId: z.string(),
-  status: z.string(),
-  currentPeriodStart: z.number(),
-  currentPeriodEnd: z.number(),
-  cancelAtPeriodEnd: z.boolean(),
-  metadata: z.record(z.string()).optional(),
-});
+  return planId;
+}
 
-const subscriptionCancelledDataSchema = z.object({
-  id: z.string(),
-  customerId: z.string(),
-  productId: z.string(),
-  status: z.string(),
-  cancelledAt: z.number(),
-  metadata: z.record(z.string()).optional(),
-});
-
-const invoicePaidDataSchema = z.object({
-  id: z.string(),
-  customerId: z.string(),
-  subscriptionId: z.string().optional(),
-  productId: z.string(),
-  amount: z.number(),
-  currency: z.string(),
-  status: z.string(),
-  paidAt: z.number(),
-  metadata: z.record(z.string()).optional(),
-});
-
-const checkoutCompletedDataSchema = z.object({
-  id: z.string(),
-  customerId: z.string(),
-  productId: z.string(),
-  status: z.string(),
-  amount: z.number(),
-  currency: z.string(),
-  completedAt: z.number(),
-  metadata: z.record(z.string()).optional(),
-});
-
-export type SubscriptionCreatedData = z.infer<typeof subscriptionCreatedDataSchema>;
-export type SubscriptionUpdatedData = z.infer<typeof subscriptionUpdatedDataSchema>;
-export type SubscriptionCancelledData = z.infer<typeof subscriptionCancelledDataSchema>;
-export type InvoicePaidData = z.infer<typeof invoicePaidDataSchema>;
-export type CheckoutCompletedData = z.infer<typeof checkoutCompletedDataSchema>; 
+// Функция для получения деталей плана
+export function getPlanEffectPaymentDetails({
+  planId,
+  planEffect,
+}: {
+  planId: PaymentPlanId;
+  planEffect: PaymentPlanEffect;
+}): {
+  subscriptionPlan: PaymentPlanId | undefined;
+  numOfCreditsPurchased: number | undefined;
+} {
+  switch (planEffect.kind) {
+    case 'subscription':
+      return { subscriptionPlan: planId, numOfCreditsPurchased: undefined };
+    case 'credits':
+      return { subscriptionPlan: undefined, numOfCreditsPurchased: planEffect.amount };
+    default:
+      throw new Error(`Unknown plan effect kind: ${(planEffect as any).kind}`);
+  }
+} 

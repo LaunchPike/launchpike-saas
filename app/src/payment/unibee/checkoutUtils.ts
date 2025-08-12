@@ -2,8 +2,10 @@ import { UNIBEE_CONFIG } from './env';
 import type { UnibeeCustomer, UnibeeCheckoutSession, UnibeeCheckoutParams } from './types';
 import { PaymentPlanId } from '../plans';
 
+// WASP_WEB_CLIENT_URL будет установлен Wasp при деплое в production
 const DOMAIN = process.env.WASP_WEB_CLIENT_URL || 'http://localhost:3000';
 
+// Маппинг планов на Unibee variant ID
 const PLAN_ID_MAPPING: Record<PaymentPlanId, string> = {
   [PaymentPlanId.Hobby]: '768',
   [PaymentPlanId.Pro]: '767', 
@@ -12,8 +14,10 @@ const PLAN_ID_MAPPING: Record<PaymentPlanId, string> = {
 
 export async function fetchUnibeeCustomer(customerEmail: string): Promise<UnibeeCustomer> {
   try {
+    // В Unibee мы можем создать клиента или найти существующего
+    // Для простоты создаем нового клиента каждый раз
     const customer: UnibeeCustomer = {
-      id: `customer_${Date.now()}`,
+      id: `customer_${Date.now()}`, // В реальном приложении это должно быть ID из Unibee API
       email: customerEmail,
     };
     
@@ -29,7 +33,11 @@ export async function createUnibeeCheckoutSession(
   params: UnibeeCheckoutParams
 ): Promise<UnibeeCheckoutSession> {
   try {
+    // Создаем checkout URL для Unibee
     const checkoutUrl = `${UNIBEE_CONFIG.baseUrl.replace('api-', 'cs-')}/hosted/checkout?planId=${params.planId}&env=daily`;
+    
+    // В реальном приложении здесь должен быть вызов Unibee API
+    // для создания checkout сессии
     
     const session: UnibeeCheckoutSession = {
       id: `session_${Date.now()}`,
