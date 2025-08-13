@@ -18,10 +18,6 @@ import {
 
 export const unibeeWebhook: PaymentsWebhook = async (request, response, context) => {
   console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
-  console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
-  console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
-  console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
-  console.log('🔥 WEBHOOK FUNCTION CALLED! 🔥');
   console.log('=== UNIBEE WEBHOOK RECEIVED ===');
   console.log('Method:', request.method);
   console.log('URL:', request.url);

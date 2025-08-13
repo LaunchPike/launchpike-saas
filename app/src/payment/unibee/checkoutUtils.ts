@@ -35,11 +35,6 @@ export async function createUnibeeCheckoutSession(
     const baseUrl = `${UNIBEE_CONFIG.baseUrl.replace('api-', 'cs-')}/hosted/checkout`;
     const checkoutUrl = `${baseUrl}?planId=${params.planId}&env=daily&successUrl=${encodeURIComponent(params.successUrl)}&cancelUrl=${encodeURIComponent(params.cancelUrl)}`;
     
-    console.log('Base URL:', baseUrl);
-    console.log('Generated checkout URL:', checkoutUrl);
-    console.log('Success URL:', params.successUrl);
-    console.log('Cancel URL:', params.cancelUrl);
-    
     const possibleEndpoints = [
       '/v1/checkout/session',
       '/v1/checkout/sessions',
@@ -98,7 +93,6 @@ export async function createUnibeeCheckoutSession(
       };
       
       console.log('Created Unibee checkout session (direct URL):', session);
-      console.log('📋 User should be redirected to:', checkoutUrl);
       return session;
     }
     

@@ -25,17 +25,17 @@ export type PaymentPlanEffect = { kind: 'subscription' } | { kind: 'credits'; am
 
 export const paymentPlans: Record<PaymentPlanId, PaymentPlan> = {
   [PaymentPlanId.Hobby]: {
-    getPaymentProcessorPlanId: () => '768', // Unibee Hobby plan ID
+    getPaymentProcessorPlanId: () => requireNodeEnvVar('PAYMENTS_HOBBY_SUBSCRIPTION_PLAN_ID'),
     effect: { kind: 'subscription' },
     getPlanType: () => PaymentPlanId.Hobby,
   },
   [PaymentPlanId.Pro]: {
-    getPaymentProcessorPlanId: () => '767', // Unibee Pro plan ID
+    getPaymentProcessorPlanId: () => requireNodeEnvVar('PAYMENTS_PRO_SUBSCRIPTION_PLAN_ID'),
     effect: { kind: 'subscription' },
     getPlanType: () => PaymentPlanId.Pro,
   },
   [PaymentPlanId.Credits10]: {
-    getPaymentProcessorPlanId: () => '769', // Unibee Credits plan ID
+    getPaymentProcessorPlanId: () => requireNodeEnvVar('PAYMENTS_CREDITS_10_PLAN_ID'),
     effect: { kind: 'credits', amount: 10 },
     getPlanType: () => PaymentPlanId.Credits10,
   },
