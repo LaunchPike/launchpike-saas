@@ -64,6 +64,7 @@ export const unibeePaymentProcessor: PaymentProcessor = {
     console.log('✅ Checkout session created successfully');
     console.log('Session ID:', session.id);
     console.log('Checkout URL:', session.url);
+    console.log('📧 User email passed to UniBee:', userEmail);
     
     return { session };
   },

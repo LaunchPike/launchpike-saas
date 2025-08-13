@@ -139,6 +139,8 @@ export async function createUnibeeUserSession(
       sessionResponse = testSession;
     }
     
+    console.log('📧 User email included in session metadata:', customerEmail);
+    
     if (sessionResponse.code !== 200) {
       console.error('❌ UniBee session API error:', sessionResponse);
       throw new Error(`UniBee session API error: ${sessionResponse.message}`);
@@ -147,6 +149,7 @@ export async function createUnibeeUserSession(
     console.log('✅ UniBee user session created successfully');
     console.log('Client Session:', sessionResponse.data.clientSession);
     console.log('Customer ID:', sessionResponse.data.customerId);
+    console.log('📧 User email will be passed to checkout:', customerEmail);
     
     return {
       clientSession: sessionResponse.data.clientSession,
@@ -190,9 +193,10 @@ export async function createUnibeeCheckoutSession(
     }
     
     const baseUrl = `${UNIBEE_CONFIG.baseUrl.replace('api-', 'cs-')}/hosted/checkout`;
-    const checkoutUrl = `${baseUrl}?planId=${params.planId}&env=prod&session=${clientSession}&successUrl=${encodeURIComponent(params.successUrl)}&cancelUrl=${encodeURIComponent(params.cancelUrl)}`;
+    const checkoutUrl = `${baseUrl}?planId=${params.planId}&env=prod&session=${clientSession}&email=${encodeURIComponent(params.customerEmail)}&successUrl=${encodeURIComponent(params.successUrl)}&cancelUrl=${encodeURIComponent(params.cancelUrl)}`;
     
     console.log('🔗 Generated checkout URL:', checkoutUrl);
+    console.log('📧 User email included in checkout URL:', params.customerEmail);
     
     const session: UnibeeCheckoutSession = {
       id: clientSession,
@@ -204,6 +208,7 @@ export async function createUnibeeCheckoutSession(
         clientSession,
         customerId,
         planId: params.planId,
+        userEmail: params.customerEmail,
         createdAt: new Date().toISOString(),
       }
     };
