@@ -29,7 +29,6 @@ export const unibeeWebhook: PaymentsWebhook = async (request, response, context)
   console.log('Request IP:', request.ip);
   console.log('User Agent:', request.headers['user-agent']);
   
-  // Проверяем, что body не пустой
   if (!request.body || Object.keys(request.body).length === 0) {
     console.error('❌ Empty webhook body received');
     return response.status(400).json({ error: 'Empty webhook body' });
@@ -181,7 +180,6 @@ async function handleSubscriptionCreated(
   console.log('Processing subscription created:', subscription);
   
   try {
-    // Извлекаем данные из различных возможных мест
     const customerId = subscription.customer_id;
     const customerEmail = subscription.customer_email;
     const variantId = subscription.variant_id;
@@ -256,8 +254,7 @@ async function handleSubscriptionUpdated(
     }
     
     let subscriptionStatus: SubscriptionStatus;
-    
-    // Unibee использует числовые статусы
+
     const statusStr = subscription.status?.toString() || '';
     
     switch (statusStr) {
@@ -275,7 +272,7 @@ async function handleSubscriptionUpdated(
         break;
       default:
         console.log(`ℹ️ Unknown subscription status: ${subscription.status}`);
-        subscriptionStatus = SubscriptionStatus.Active; // По умолчанию активный
+        subscriptionStatus = SubscriptionStatus.Active;
     }
     
     console.log(`📋 Updating subscription for plan: ${planId}`);
@@ -355,7 +352,6 @@ async function handleInvoicePaid(
   console.log('Processing invoice.paid event:', invoice);
   
   try {
-    // Пытаемся извлечь email пользователя из различных возможных мест
     let userEmail: string | null = null;
     let userId: string | null = null;
     
@@ -385,7 +381,6 @@ async function handleInvoicePaid(
       return;
     }
     
-    // Пытаемся определить план подписки
     let planId: PaymentPlanId | null = null;
     
     if (invoice.subscription?.variant_id) {
@@ -402,7 +397,6 @@ async function handleInvoicePaid(
       }
     }
     
-    // Определяем дату оплаты
     let datePaid: Date;
     if (invoice.createTime) {
       datePaid = new Date(invoice.createTime * 1000);
@@ -442,7 +436,6 @@ async function handleInvoiceCreated(
 ) {
   console.log('Processing invoice.created event:', invoice);
   
-  // Логируем создание инвойса для отладки
   console.log('Invoice created for:', {
     id: invoice.id,
     amount: invoice.amount,
@@ -458,7 +451,6 @@ async function handlePaymentSucceeded(
 ) {
   console.log('Processing payment.succeeded event:', payment);
   
-  // Обновляем статус пользователя при успешной оплате
   await createOrUpdateUserUnibeePaymentDetails(
     {
       userUnibeeId: payment.customer_id,
@@ -477,6 +469,5 @@ async function handlePaymentFailed(
 ) {
   console.log('Processing payment.failed event:', payment);
   
-  // Логируем неудачную оплату
   console.log(`Payment failed for user ${payment.customer_email}, amount: ${payment.amount} ${payment.currency}`);
 } 

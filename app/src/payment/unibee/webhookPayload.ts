@@ -82,20 +82,16 @@ export function parseUnibeeWebhookPayload(rawEvent: any): {
 } {
   try {
     console.log('🔍 Parsing webhook payload:', JSON.stringify(rawEvent, null, 2));
-    
-    // Проверяем различные возможные структуры webhook'а
+
     let event: UnibeeWebhookEvent;
     
     if (rawEvent.type && rawEvent.data) {
-      // Стандартная структура
       event = rawEvent as UnibeeWebhookEvent;
     } else if (rawEvent.eventType && (rawEvent.subscription || rawEvent.user || rawEvent.latestInvoice)) {
-      // Структура Unibee: eventType + subscription/user/invoice данные
       event = {
         id: rawEvent.eventId || `event_${Date.now()}`,
         type: rawEvent.eventType as UnibeeWebhookEventType,
         data: {
-          // Создаем структуру данных на основе доступной информации
           id: rawEvent.subscription?.id || rawEvent.user?.id || rawEvent.latestInvoice?.id || `data_${Date.now()}`,
           customer_id: rawEvent.subscription?.userId?.toString() || rawEvent.user?.id?.toString() || '',
           customer_email: rawEvent.user?.email || '',
@@ -106,7 +102,6 @@ export function parseUnibeeWebhookPayload(rawEvent: any): {
           currency: rawEvent.subscription?.currency || rawEvent.plan?.currency || 'USD',
           created_at: rawEvent.subscription?.createTime ? new Date(rawEvent.subscription.createTime * 1000).toISOString() : new Date().toISOString(),
           updated_at: rawEvent.subscription?.lastUpdateTime ? new Date(rawEvent.subscription.lastUpdateTime * 1000).toISOString() : new Date().toISOString(),
-          // Для order событий
           total: rawEvent.latestInvoice?.totalAmount || rawEvent.subscription?.amount || 0,
           items: rawEvent.latestInvoice?.lines ? rawEvent.latestInvoice.lines.map((line: any) => ({
             id: line.id?.toString() || `item_${Date.now()}`,
@@ -119,7 +114,6 @@ export function parseUnibeeWebhookPayload(rawEvent: any): {
         created_at: rawEvent.datetime || new Date().toISOString()
       };
     } else if (rawEvent.event_type && rawEvent.data) {
-      // Альтернативная структура
       event = {
         id: rawEvent.id || `event_${Date.now()}`,
         type: rawEvent.event_type as UnibeeWebhookEventType,
@@ -127,7 +121,6 @@ export function parseUnibeeWebhookPayload(rawEvent: any): {
         created_at: rawEvent.created_at || new Date().toISOString()
       };
     } else if (rawEvent.event && rawEvent.data) {
-      // Еще одна возможная структура
       event = {
         id: rawEvent.id || `event_${Date.now()}`,
         type: rawEvent.event as UnibeeWebhookEventType,
@@ -135,11 +128,9 @@ export function parseUnibeeWebhookPayload(rawEvent: any): {
         created_at: rawEvent.created_at || new Date().toISOString()
       };
     } else {
-      // Если структура не распознана, логируем и пытаемся извлечь данные
       console.log('⚠️ Unknown webhook structure, attempting to extract data...');
       console.log('Raw event keys:', Object.keys(rawEvent));
       
-      // Пытаемся найти event type в различных местах
       const possibleEventTypes = ['type', 'eventType', 'event_type', 'event', 'name', 'eventName'];
       let foundEventType: string | null = null;
       
