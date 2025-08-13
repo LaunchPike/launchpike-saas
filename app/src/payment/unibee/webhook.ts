@@ -29,6 +29,12 @@ export const unibeeWebhook: PaymentsWebhook = async (request, response, context)
   console.log('Request IP:', request.ip);
   console.log('User Agent:', request.headers['user-agent']);
   
+  // Проверяем, что body не пустой
+  if (!request.body || Object.keys(request.body).length === 0) {
+    console.error('❌ Empty webhook body received');
+    return response.status(400).json({ error: 'Empty webhook body' });
+  }
+  
   try {
     const authHeader = request.headers.authorization;
     const expectedApiKey = requireNodeEnvVar('UNIBEE_PUBLIC_KEY');
@@ -60,6 +66,10 @@ export const unibeeWebhook: PaymentsWebhook = async (request, response, context)
     console.log('Normalized event name:', normalizedEventName);
     
     switch (normalizedEventName) {
+      case 'ordercreated':
+        console.log('Handling order.created event');
+        await handleOrderCreated(data as UnibeeOrderData, prismaUserDelegate);
+        break;
       case 'subscriptioncreated':
         console.log('Handling subscription.created event');
         await handleSubscriptionCreated(data as UnibeeSubscriptionData, prismaUserDelegate);
@@ -75,6 +85,18 @@ export const unibeeWebhook: PaymentsWebhook = async (request, response, context)
       case 'invoicepaid':
         console.log('Handling invoice.paid event');
         await handleInvoicePaid(data as any, prismaUserDelegate);
+        break;
+      case 'invoicecreated':
+        console.log('Handling invoice.created event');
+        await handleInvoiceCreated(data as any, prismaUserDelegate);
+        break;
+      case 'paymentsucceeded':
+        console.log('Handling payment.succeeded event');
+        await handlePaymentSucceeded(data as UnibeePaymentData, prismaUserDelegate);
+        break;
+      case 'paymentfailed':
+        console.log('Handling payment.failed event');
+        await handlePaymentFailed(data as UnibeePaymentData, prismaUserDelegate);
         break;
       default:
         console.log(`Unhandled Unibee webhook event: ${eventName}`);
@@ -106,26 +128,49 @@ async function handleOrderCreated(
   order: UnibeeOrderData,
   prismaUserDelegate: PrismaClient['user']
 ) {
-  console.log('Processing order created:', order.id);
+  console.log('Processing order created:', order);
   
-  for (const item of order.items) {
-    const planId = getPlanIdByVariantId(item.variant_id);
-    const plan = paymentPlans[planId];
-    const { numOfCreditsPurchased } = getPlanEffectPaymentDetails({ planId, planEffect: plan.effect });
+  try {
+    const customerId = order.customer_id;
+    const customerEmail = order.customer_email;
     
-    if (numOfCreditsPurchased) {
-      await createOrUpdateUserUnibeePaymentDetails(
-        {
-          userUnibeeId: order.customer_id,
-          userEmail: order.customer_email,
-          numOfCreditsPurchased,
-          datePaid: new Date(order.created_at),
-        },
-        prismaUserDelegate
-      );
-      
-      console.log(`Added ${numOfCreditsPurchased} credits to user ${order.customer_email}`);
+    if (!customerId || !customerEmail) {
+      console.warn('⚠️ Missing customer information in order:', order);
+      return;
     }
+    
+    console.log(`🛒 Processing order for customer: ${customerEmail} (ID: ${customerId})`);
+    console.log(`📦 Order items:`, order.items);
+    
+    for (const item of order.items) {
+      try {
+        const planId = getPlanIdByVariantId(item.variant_id);
+        const plan = paymentPlans[planId];
+        const { numOfCreditsPurchased } = getPlanEffectPaymentDetails({ planId, planEffect: plan.effect });
+        
+        if (numOfCreditsPurchased) {
+          await createOrUpdateUserUnibeePaymentDetails(
+            {
+              userUnibeeId: customerId,
+              userEmail: customerEmail,
+              numOfCreditsPurchased,
+              datePaid: new Date(order.created_at),
+            },
+            prismaUserDelegate
+          );
+          
+          console.log(`✅ Added ${numOfCreditsPurchased} credits to user ${customerEmail}`);
+        } else {
+          console.log(`ℹ️ No credits to add for plan ${planId}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error processing order item ${item.id}:`, error);
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Error processing order.created event:', error);
+    console.error('Order data:', JSON.stringify(order, null, 2));
   }
 }
 
@@ -133,132 +178,174 @@ async function handleSubscriptionCreated(
   subscription: UnibeeSubscriptionData,
   prismaUserDelegate: PrismaClient['user']
 ) {
-  console.log('Processing subscription created:', subscription.id);
+  console.log('Processing subscription created:', subscription);
   
-  const planId = getPlanIdByVariantId(subscription.variant_id);
-  const plan = paymentPlans[planId];
-  
-  await createOrUpdateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: subscription.customer_id,
-      userEmail: subscription.customer_email,
-      subscriptionPlan: planId,
-      subscriptionStatus: SubscriptionStatus.Active,
-      datePaid: new Date(subscription.created_at),
-    },
-    prismaUserDelegate
-  );
-  
-  console.log(`Activated subscription ${planId} for user ${subscription.customer_email}`);
+  try {
+    // Извлекаем данные из различных возможных мест
+    const customerId = subscription.customer_id;
+    const customerEmail = subscription.customer_email;
+    const variantId = subscription.variant_id;
+    
+    if (!customerId || !customerEmail) {
+      console.warn('⚠️ Missing customer information in subscription:', subscription);
+      return;
+    }
+    
+    if (!variantId) {
+      console.warn('⚠️ Missing variant_id in subscription:', subscription);
+      return;
+    }
+    
+    let planId: PaymentPlanId;
+    try {
+      planId = getPlanIdByVariantId(variantId);
+    } catch (error) {
+      console.error('❌ Could not determine plan from variant_id:', variantId, error);
+      return;
+    }
+    
+    console.log(`📋 Processing subscription for plan: ${planId}`);
+    console.log(`👤 Customer: ${customerEmail} (ID: ${customerId})`);
+    
+    await createOrUpdateUserUnibeePaymentDetails(
+      {
+        userUnibeeId: customerId,
+        userEmail: customerEmail,
+        subscriptionPlan: planId,
+        subscriptionStatus: SubscriptionStatus.Active,
+        datePaid: new Date(subscription.created_at),
+      },
+      prismaUserDelegate
+    );
+    
+    console.log(`✅ Successfully activated subscription ${planId} for user ${customerEmail}`);
+    
+  } catch (error) {
+    console.error('❌ Error processing subscription.created event:', error);
+    console.error('Subscription data:', JSON.stringify(subscription, null, 2));
+  }
 }
 
 async function handleSubscriptionUpdated(
   subscription: UnibeeSubscriptionData,
   prismaUserDelegate: PrismaClient['user']
 ) {
-  console.log('Processing subscription updated:', subscription.id);
+  console.log('Processing subscription updated:', subscription);
   
-  const planId = getPlanIdByVariantId(subscription.variant_id);
-  let subscriptionStatus: SubscriptionStatus;
-  
-  switch (subscription.status) {
-    case 'active':
-      subscriptionStatus = SubscriptionStatus.Active;
-      break;
-    case 'past_due':
-      subscriptionStatus = SubscriptionStatus.PastDue;
-      break;
-    case 'cancelled':
-      subscriptionStatus = SubscriptionStatus.Deleted;
-      break;
-    default:
-      console.log(`Unknown subscription status: ${subscription.status}`);
+  try {
+    const customerId = subscription.customer_id;
+    const customerEmail = subscription.customer_email;
+    const variantId = subscription.variant_id;
+    
+    if (!customerId || !customerEmail) {
+      console.warn('⚠️ Missing customer information in subscription update:', subscription);
       return;
+    }
+    
+    if (!variantId) {
+      console.warn('⚠️ Missing variant_id in subscription update:', subscription);
+      return;
+    }
+    
+    let planId: PaymentPlanId;
+    try {
+      planId = getPlanIdByVariantId(variantId);
+    } catch (error) {
+      console.error('❌ Could not determine plan from variant_id:', variantId, error);
+      return;
+    }
+    
+    let subscriptionStatus: SubscriptionStatus;
+    
+    // Unibee использует числовые статусы
+    const statusStr = subscription.status?.toString() || '';
+    
+    switch (statusStr) {
+      case '1':
+      case 'active':
+        subscriptionStatus = SubscriptionStatus.Active;
+        break;
+      case '2':
+      case 'past_due':
+        subscriptionStatus = SubscriptionStatus.PastDue;
+        break;
+      case '3':
+      case 'cancelled':
+        subscriptionStatus = SubscriptionStatus.Deleted;
+        break;
+      default:
+        console.log(`ℹ️ Unknown subscription status: ${subscription.status}`);
+        subscriptionStatus = SubscriptionStatus.Active; // По умолчанию активный
+    }
+    
+    console.log(`📋 Updating subscription for plan: ${planId}`);
+    console.log(`👤 Customer: ${customerEmail} (ID: ${customerId})`);
+    console.log(`🔄 New status: ${subscriptionStatus}`);
+    
+    await createOrUpdateUserUnibeePaymentDetails(
+      {
+        userUnibeeId: customerId,
+        userEmail: customerEmail,
+        subscriptionPlan: planId,
+        subscriptionStatus,
+        datePaid: new Date(subscription.updated_at),
+      },
+      prismaUserDelegate
+    );
+    
+    console.log(`✅ Successfully updated subscription ${planId} status to ${subscriptionStatus} for user ${customerEmail}`);
+    
+  } catch (error) {
+    console.error('❌ Error processing subscription.updated event:', error);
+    console.error('Subscription data:', JSON.stringify(subscription, null, 2));
   }
-  
-  await createOrUpdateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: subscription.customer_id,
-      userEmail: subscription.customer_email,
-      subscriptionPlan: planId,
-      subscriptionStatus,
-      datePaid: new Date(subscription.updated_at),
-    },
-    prismaUserDelegate
-  );
-  
-  console.log(`Updated subscription ${planId} status to ${subscriptionStatus} for user ${subscription.customer_email}`);
 }
 
 async function handleSubscriptionCancelled(
   subscription: UnibeeSubscriptionData,
   prismaUserDelegate: PrismaClient['user']
 ) {
-  console.log('Processing subscription cancelled:', subscription.id);
-  
-  await createOrUpdateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: subscription.customer_id,
-      userEmail: subscription.customer_email,
-      subscriptionStatus: SubscriptionStatus.Deleted,
-      datePaid: new Date(subscription.updated_at),
-    },
-    prismaUserDelegate
-  );
-  
-  console.log(`Cancelled subscription for user ${subscription.customer_email}`);
+  console.log('Processing subscription cancelled:', subscription);
   
   try {
-    await emailSender.send({
-      to: subscription.customer_email,
-      subject: 'We hate to see you go :(',
-      text: 'We hate to see you go. Here is a sweet offer...',
-      html: 'We hate to see you go. Here is a sweet offer...',
-    });
+    const customerId = subscription.customer_id;
+    const customerEmail = subscription.customer_email;
+    
+    if (!customerId || !customerEmail) {
+      console.warn('⚠️ Missing customer information in subscription cancellation:', subscription);
+      return;
+    }
+    
+    console.log(`❌ Cancelling subscription for customer: ${customerEmail} (ID: ${customerId})`);
+    
+    await createOrUpdateUserUnibeePaymentDetails(
+      {
+        userUnibeeId: customerId,
+        userEmail: customerEmail,
+        subscriptionStatus: SubscriptionStatus.Deleted,
+        datePaid: new Date(subscription.updated_at),
+      },
+      prismaUserDelegate
+    );
+    
+    console.log(`✅ Successfully cancelled subscription for user ${customerEmail}`);
+    
+    try {
+      await emailSender.send({
+        to: customerEmail,
+        subject: 'We hate to see you go :(',
+        text: 'We hate to see you go. Here is a sweet offer...',
+        html: 'We hate to see you go. Here is a sweet offer...',
+      });
+      console.log(`📧 Sent cancellation email to ${customerEmail}`);
+    } catch (error) {
+      console.error('❌ Failed to send cancellation email:', error);
+    }
+    
   } catch (error) {
-    console.error('Failed to send cancellation email:', error);
+    console.error('❌ Error processing subscription.cancelled event:', error);
+    console.error('Subscription data:', JSON.stringify(subscription, null, 2));
   }
-}
-
-async function handleSubscriptionPaymentSucceeded(
-  subscription: UnibeeSubscriptionData,
-  prismaUserDelegate: PrismaClient['user']
-) {
-  console.log('Processing subscription payment succeeded:', subscription.id);
-  
-  const planId = getPlanIdByVariantId(subscription.variant_id);
-  
-  await createOrUpdateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: subscription.customer_id,
-      userEmail: subscription.customer_email,
-      subscriptionPlan: planId,
-      subscriptionStatus: SubscriptionStatus.Active,
-      datePaid: new Date(subscription.updated_at),
-    },
-    prismaUserDelegate
-  );
-  
-  console.log(`Confirmed payment for subscription ${planId} for user ${subscription.customer_email}`);
-}
-
-async function handleSubscriptionPaymentFailed(
-  subscription: UnibeeSubscriptionData,
-  prismaUserDelegate: PrismaClient['user']
-) {
-  console.log('Processing subscription payment failed:', subscription.id);
-  
-  await createOrUpdateUserUnibeePaymentDetails(
-    {
-      userUnibeeId: subscription.customer_id,
-      userEmail: subscription.customer_email,
-      subscriptionStatus: SubscriptionStatus.PastDue,
-      datePaid: new Date(subscription.updated_at),
-    },
-    prismaUserDelegate
-  );
-  
-  console.log(`Marked subscription as past due for user ${subscription.customer_email}`);
 }
 
 async function handleInvoicePaid(
@@ -267,21 +354,129 @@ async function handleInvoicePaid(
 ) {
   console.log('Processing invoice.paid event:', invoice);
   
-  if (invoice.subscription) {
-    const subscription = invoice.subscription;
-    const planId = getPlanIdByVariantId(subscription.planId?.toString() || '');
+  try {
+    // Пытаемся извлечь email пользователя из различных возможных мест
+    let userEmail: string | null = null;
+    let userId: string | null = null;
+    
+    if (invoice.customer?.email) {
+      userEmail = invoice.customer.email;
+    } else if (invoice.user?.email) {
+      userEmail = invoice.user.email;
+    } else if (invoice.email) {
+      userEmail = invoice.email;
+    }
+    
+    if (invoice.customer?.id) {
+      userId = invoice.customer.id;
+    } else if (invoice.user?.id) {
+      userId = invoice.user.id;
+    } else if (invoice.customer_id) {
+      userId = invoice.customer_id;
+    }
+    
+    if (!userEmail) {
+      console.warn('⚠️ Could not extract user email from invoice:', invoice);
+      return;
+    }
+    
+    if (!userId) {
+      console.warn('⚠️ Could not extract user ID from invoice:', invoice);
+      return;
+    }
+    
+    // Пытаемся определить план подписки
+    let planId: PaymentPlanId | null = null;
+    
+    if (invoice.subscription?.variant_id) {
+      try {
+        planId = getPlanIdByVariantId(invoice.subscription.variant_id);
+      } catch (error) {
+        console.warn('⚠️ Could not determine plan from variant_id:', invoice.subscription.variant_id);
+      }
+    } else if (invoice.variant_id) {
+      try {
+        planId = getPlanIdByVariantId(invoice.variant_id);
+      } catch (error) {
+        console.warn('⚠️ Could not determine plan from variant_id:', invoice.variant_id);
+      }
+    }
+    
+    // Определяем дату оплаты
+    let datePaid: Date;
+    if (invoice.createTime) {
+      datePaid = new Date(invoice.createTime * 1000);
+    } else if (invoice.created_at) {
+      datePaid = new Date(invoice.created_at);
+    } else if (invoice.paid_at) {
+      datePaid = new Date(invoice.paid_at);
+    } else {
+      datePaid = new Date();
+    }
     
     await createOrUpdateUserUnibeePaymentDetails(
       {
-        userUnibeeId: subscription.userId?.toString() || '',
-        userEmail: invoice.user?.email || '',
-        subscriptionPlan: planId,
+        userUnibeeId: userId,
+        userEmail: userEmail,
+        subscriptionPlan: planId || undefined,
         subscriptionStatus: SubscriptionStatus.Active,
-        datePaid: new Date(invoice.createTime * 1000),
+        datePaid: datePaid,
       },
       prismaUserDelegate
     );
     
-    console.log(`Activated subscription ${planId} for user ${invoice.user?.email}`);
+    console.log(`✅ Invoice paid processed successfully for user ${userEmail}`);
+    if (planId) {
+      console.log(`📋 Subscription plan: ${planId}`);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error processing invoice.paid event:', error);
+    console.error('Invoice data:', JSON.stringify(invoice, null, 2));
   }
+}
+
+async function handleInvoiceCreated(
+  invoice: any,
+  prismaUserDelegate: PrismaClient['user']
+) {
+  console.log('Processing invoice.created event:', invoice);
+  
+  // Логируем создание инвойса для отладки
+  console.log('Invoice created for:', {
+    id: invoice.id,
+    amount: invoice.amount,
+    currency: invoice.currency,
+    customerEmail: invoice.customer?.email || invoice.user?.email,
+    status: invoice.status
+  });
+}
+
+async function handlePaymentSucceeded(
+  payment: UnibeePaymentData,
+  prismaUserDelegate: PrismaClient['user']
+) {
+  console.log('Processing payment.succeeded event:', payment);
+  
+  // Обновляем статус пользователя при успешной оплате
+  await createOrUpdateUserUnibeePaymentDetails(
+    {
+      userUnibeeId: payment.customer_id,
+      userEmail: payment.customer_email,
+      datePaid: new Date(payment.created_at),
+    },
+    prismaUserDelegate
+  );
+  
+  console.log(`Payment succeeded for user ${payment.customer_email}`);
+}
+
+async function handlePaymentFailed(
+  payment: UnibeePaymentData,
+  prismaUserDelegate: PrismaClient['user']
+) {
+  console.log('Processing payment.failed event:', payment);
+  
+  // Логируем неудачную оплату
+  console.log(`Payment failed for user ${payment.customer_email}, amount: ${payment.amount} ${payment.currency}`);
 } 

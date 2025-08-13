@@ -87,7 +87,7 @@ app LaunchPike {
     // NOTE: "Dummy" provider is just for local development purposes.
     //   Make sure to check the server logs for the email confirmation url (it will not be sent to an address)!
     //   Once you are ready for production, switch to e.g. "SendGrid" or "Mailgun" providers. Check out https://docs.opensaas.sh/guides/email-sending/ .
-    provider: SendGrid,
+    provider: Mailgun,
     defaultFrom: {
       name: "LaunchPike",
       // When using a real provider, e.g. SendGrid, you must use the same email address that you configured your account to send out emails with!
@@ -210,7 +210,8 @@ api paymentsWebhook {
   fn: import { paymentsWebhook } from "@src/payment/webhook",
   entities: [User],
   middlewareConfigFn: import { paymentsMiddlewareConfigFn } from "@src/payment/webhook",
-  httpRoute: (POST, "/payments-webhook")
+  httpRoute: (POST, "/payments-webhook"),
+  auth: false
 }
 
 api testWebhook {
