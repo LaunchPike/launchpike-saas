@@ -45,12 +45,29 @@ export interface UnibeeWebhookEvent {
   created: number;
 }
 
+export interface UnibeeSessionRequest {
+  email: string;
+  name?: string;
+  metadata?: Record<string, string>;
+}
+
+export interface UnibeeSessionResponse {
+  code: number;
+  message: string;
+  data: {
+    clientSession: string;
+    customerId: string;
+  };
+}
+
 export interface UnibeeCheckoutParams {
   planId: string;
   customerEmail: string;
   customerName?: string;
   successUrl: string;
   cancelUrl: string;
+  clientSession?: string;
+  customerId?: string;
 }
 
 export interface UnibeeCustomerPortalParams {
