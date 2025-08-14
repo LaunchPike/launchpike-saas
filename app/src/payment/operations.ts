@@ -22,6 +22,8 @@ export const generateCheckoutSession: GenerateCheckoutSession<
     throw new HttpError(401, 'Only authenticated users are allowed to perform this operation');
   }
 
+  console.log('🔥 generateCheckoutSession called 🔥');
+
   const paymentPlanId = ensureArgsSchemaOrThrowHttpError(generateCheckoutSessionSchema, rawPaymentPlanId);
   const userId = context.user.id;
   const userEmail = context.user.email;
