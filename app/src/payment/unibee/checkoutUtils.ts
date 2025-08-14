@@ -10,10 +10,12 @@ import { PaymentPlanId } from '../plans';
 
 const DOMAIN = process.env.WASP_WEB_CLIENT_URL || 'http://localhost:3000';
 
+// UniBee Plan ID mapping - update these to match your actual UniBee plan IDs
+// You can also set these via environment variables if needed
 const PLAN_ID_MAPPING: Record<PaymentPlanId, string> = {
-  [PaymentPlanId.Hobby]: '768',
-  [PaymentPlanId.Pro]: '767', 
-  [PaymentPlanId.Credits10]: '769',
+  [PaymentPlanId.Hobby]: process.env.UNIBEE_HOBBY_PLAN_ID || '768',
+  [PaymentPlanId.Pro]: process.env.UNIBEE_PRO_PLAN_ID || '767', 
+  [PaymentPlanId.Credits10]: process.env.UNIBEE_CREDITS_10_PLAN_ID || '769',
 };
 
 export function logUnibeeConfig() {
@@ -32,99 +34,36 @@ export function logUnibeeConfig() {
 export async function createUnibeeUserSession(
   customerEmail: string,
   customerName?: string,
-  metadata?: Record<string, string>
+  metadata?: Record<string, string>,
+  successUrl?: string,
+  cancelUrl?: string
 ): Promise<{ clientSession: string; customerId: string }> {
   try {
     console.log('👤 Creating UniBee user session...');
     console.log('Email:', customerEmail);
     console.log('Name:', customerName);
+    console.log('Success URL:', successUrl);
+    console.log('Cancel URL:', cancelUrl);
+    
+    // Generate a unique external user ID
+    const externalUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const sessionRequest: UnibeeSessionRequest = {
       email: customerEmail,
-      name: customerName,
+      externalUserId: externalUserId,
+      successUrl,
+      cancelUrl,
       metadata: {
         ...metadata,
         createdAt: new Date().toISOString(),
-        source: 'wasp_app'
+        source: 'wasp_app',
+        customerName: customerName || 'Unknown'
       }
     };
     
     console.log('Session request:', sessionRequest);
-    
-    const possibleEndpoints = [
-      UNIBEE_CONFIG.sessionEndpoint,
-      '/v1/session',
-      '/v1/checkout/session',
-      '/v1/checkout/sessions',
-      '/v1/customer/session',
-      '/v1/customers/session'
-    ];
-    
-    let sessionResponse: UnibeeSessionResponse | null = null;
-    let workingEndpoint: string | null = null;
-    
-    for (const endpoint of possibleEndpoints) {
-      try {
-        console.log(`🔍 Trying endpoint: ${endpoint}`);
-        console.log(`🔗 Full URL: ${UNIBEE_CONFIG.baseUrl}${endpoint}`);
-        console.log(`🔑 Using API key: ${UNIBEE_CONFIG.publicKey.substring(0, 10)}...`);
-        
-        const response = await fetch(`${UNIBEE_CONFIG.baseUrl}${endpoint}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${UNIBEE_CONFIG.publicKey}`,
-          },
-          body: JSON.stringify(sessionRequest),
-        });
-        
-        console.log(`Endpoint ${endpoint} response status:`, response.status);
-        console.log(`Response headers:`, Object.fromEntries(response.headers.entries()));
-        
-        if (response.ok) {
-          const responseData = await response.json();
-          console.log(`✅ Working endpoint found: ${endpoint}`);
-          console.log('Response data:', responseData);
-          
-          if (responseData.clientSession || responseData.data?.clientSession) {
-            sessionResponse = {
-              code: 200,
-              message: 'Success',
-              data: {
-                clientSession: responseData.clientSession || responseData.data.clientSession,
-                customerId: responseData.customerId || responseData.data?.customerId || `customer_${Date.now()}`
-              }
-            };
-            workingEndpoint = endpoint;
-            break;
-          } else {
-            console.log(`⚠️ Endpoint ${endpoint} returned success but no clientSession`);
-            console.log('Available fields:', Object.keys(responseData));
-          }
-        } else {
-          const errorText = await response.text();
-          console.log(`❌ Endpoint ${endpoint} failed:`, response.status, errorText);
-        }
-      } catch (error) {
-        console.log(`❌ Endpoint ${endpoint} error:`, error);
-      }
-    }
-    
-    if (!sessionResponse) {
-      console.log('⚠️ No working API endpoint found, using fallback approach');
-      
-      const fallbackSession = {
-        code: 200,
-        message: 'Fallback session created',
-        data: {
-          clientSession: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          customerId: `customer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        }
-      };
-      
-      console.log('🔧 Using fallback session:', fallbackSession);
-      sessionResponse = fallbackSession;
-    }
+    console.log('🔗 Full URL: ${UNIBEE_CONFIG.baseUrl}${UNIBEE_CONFIG.sessionEndpoint}');
+    console.log(`🔑 Using API key: ${UNIBEE_CONFIG.publicKey.substring(0, 10)}...`);
     
     if (UNIBEE_CONFIG.isTestMode) {
       console.log('🧪 Test mode enabled, using fallback session');
@@ -136,24 +75,52 @@ export async function createUnibeeUserSession(
           customerId: `test_customer_${Date.now()}`
         }
       };
-      sessionResponse = testSession;
+      return {
+        clientSession: testSession.data.clientSession,
+        customerId: testSession.data.customerId
+      };
     }
     
-    console.log('📧 User email included in session metadata:', customerEmail);
+    const response = await fetch(`${UNIBEE_CONFIG.baseUrl}${UNIBEE_CONFIG.sessionEndpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${UNIBEE_CONFIG.publicKey}`,
+        'accept': 'application/json',
+      },
+      body: JSON.stringify(sessionRequest),
+    });
     
-    if (sessionResponse.code !== 200) {
-      console.error('❌ UniBee session API error:', sessionResponse);
-      throw new Error(`UniBee session API error: ${sessionResponse.message}`);
+    console.log(`Response status:`, response.status);
+    console.log(`Response headers:`, Object.fromEntries(response.headers.entries()));
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ UniBee session API failed:`, response.status, errorText);
+      throw new Error(`UniBee session API error: ${response.status} - ${errorText}`);
+    }
+    
+    const responseData: UnibeeSessionResponse = await response.json();
+    console.log('✅ UniBee session API response:', responseData);
+    
+    if (responseData.code !== 0) {
+      console.error('❌ UniBee session API error:', responseData);
+      throw new Error(`UniBee session API error: ${responseData.message}`);
+    }
+    
+    if (!responseData.data?.clientSession) {
+      console.error('❌ No clientSession in response:', responseData);
+      throw new Error('No clientSession received from UniBee API');
     }
     
     console.log('✅ UniBee user session created successfully');
-    console.log('Client Session:', sessionResponse.data.clientSession);
-    console.log('Customer ID:', sessionResponse.data.customerId);
+    console.log('Client Session:', responseData.data.clientSession);
+    console.log('User ID:', responseData.data.userId);
     console.log('📧 User email will be passed to checkout:', customerEmail);
     
     return {
-      clientSession: sessionResponse.data.clientSession,
-      customerId: sessionResponse.data.customerId
+      clientSession: responseData.data.clientSession,
+      customerId: responseData.data.userId
     };
     
   } catch (error) {
@@ -177,7 +144,6 @@ export async function createUnibeeCheckoutSession(
       customerId = params.customerId;
       console.log('Using existing client session:', clientSession);
     } else {
-
       console.log('Creating new user session...');
       const sessionData = await createUnibeeUserSession(
         params.customerEmail,
@@ -185,18 +151,21 @@ export async function createUnibeeCheckoutSession(
         {
           planId: params.planId,
           userId: params.customerEmail,
-        }
+        },
+        params.successUrl,
+        params.cancelUrl
       );
       
       clientSession = sessionData.clientSession;
       customerId = sessionData.customerId;
     }
     
+    // Use the correct checkout URL format as shown in your example
     const baseUrl = `${UNIBEE_CONFIG.baseUrl.replace('api-', 'cs-')}/hosted/checkout`;
-    const checkoutUrl = `${baseUrl}?planId=${params.planId}&env=prod&session=${clientSession}&email=${encodeURIComponent(params.customerEmail)}&successUrl=${encodeURIComponent(params.successUrl)}&cancelUrl=${encodeURIComponent(params.cancelUrl)}`;
+    const checkoutUrl = `${baseUrl}?planId=${params.planId}&env=daily&session=${clientSession}`;
     
     console.log('🔗 Generated checkout URL:', checkoutUrl);
-    console.log('📧 User email included in checkout URL:', params.customerEmail);
+    console.log('📧 User email included in session metadata:', params.customerEmail);
     
     const session: UnibeeCheckoutSession = {
       id: clientSession,

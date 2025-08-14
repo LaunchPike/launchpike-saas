@@ -45,9 +45,12 @@ export interface UnibeeWebhookEvent {
   created: number;
 }
 
+// Updated to match the actual UniBee API structure
 export interface UnibeeSessionRequest {
   email: string;
-  name?: string;
+  externalUserId: string;
+  successUrl?: string;
+  cancelUrl?: string;
   metadata?: Record<string, string>;
 }
 
@@ -55,9 +58,15 @@ export interface UnibeeSessionResponse {
   code: number;
   message: string;
   data: {
+    userId: string;
+    externalUserId: string;
+    email: string;
+    url: string;
+    clientToken: string;
     clientSession: string;
-    customerId: string;
   };
+  redirect: string;
+  requestId: string;
 }
 
 export interface UnibeeCheckoutParams {

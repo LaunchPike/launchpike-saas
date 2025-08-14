@@ -36,7 +36,7 @@ export const unibeePaymentProcessor: PaymentProcessor = {
       undefined,
       {
         metadata: {
-          userId: user.id,
+          userId: user.id.toString(),
           userPlan: planType,
           userCreatedAt: user.createdAt.toISOString(),
           source: 'web_app',
@@ -45,10 +45,13 @@ export const unibeePaymentProcessor: PaymentProcessor = {
       }
     );
     
+    // Use the customerId from the session response, fallback to session ID if needed
+    const customerId = unibeeSession.customerId || unibeeSession.id;
+    
     await prismaUserDelegate.update({
       where: { id: userId },
       data: { 
-        paymentProcessorUserId: unibeeSession.customerId || unibeeSession.id,
+        paymentProcessorUserId: customerId,
       }
     });
     
@@ -64,6 +67,7 @@ export const unibeePaymentProcessor: PaymentProcessor = {
     console.log('✅ Checkout session created successfully');
     console.log('Session ID:', session.id);
     console.log('Checkout URL:', session.url);
+    console.log('Customer ID:', customerId);
     console.log('📧 User email passed to UniBee:', userEmail);
     
     return { session };
