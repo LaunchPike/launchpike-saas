@@ -57,15 +57,15 @@ app LaunchPike {
         configFn: import { getGoogleAuthConfig } from "@src/auth/userSignupFields",
       },
       // Uncomment to enable GitHub Auth (check https://wasp.sh/docs/auth/social-auth/github for setup instructions):
-      // gitHub: {
-      //   userSignupFields: import { getGitHubUserFields } from "@src/auth/userSignupFields",
-      //   configFn: import { getGitHubAuthConfig } from "@src/auth/userSignupFields",
-      // },
+      gitHub: {
+        userSignupFields: import { getGitHubUserFields } from "@src/auth/userSignupFields",
+        configFn: import { getGitHubAuthConfig } from "@src/auth/userSignupFields",
+      },
       // Uncomment to enable Discord Auth (check https://wasp.sh/docs/auth/social-auth/discord for setup instructions):
-      // discord: {
-      //   userSignupFields: import { getDiscordUserFields } from "@src/auth/userSignupFields",
-      //   configFn: import { getDiscordAuthConfig } from "@src/auth/userSignupFields"
-      // }
+      discord: {
+        userSignupFields: import { getDiscordUserFields } from "@src/auth/userSignupFields",
+        configFn: import { getDiscordAuthConfig } from "@src/auth/userSignupFields"
+      }
     },
     onAuthFailedRedirectTo: "/login",
     onAuthSucceededRedirectTo: "/demo-app",
@@ -91,7 +91,7 @@ app LaunchPike {
     defaultFrom: {
       name: "LaunchPike",
       // When using a real provider, e.g. SendGrid, you must use the same email address that you configured your account to send out emails with!
-      email: "exemplum777@gmail.com"
+      email: "info@launchpike.org"
     },
   },
 }
