@@ -1,0 +1,57 @@
+on:
+  push:
+    branches:
+    - main
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: wasp-app
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Wasp CLI
+        run: |
+          curl -sSL https://get.wasp-lang.dev/installer.sh | sh
+          echo "$HOME/.wasp/bin" >> "$GITHUB_PATH"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build with Wasp
+        run: wasp build
+        # Produces .wasp/build with Dockerfile for the server. :contentReference[oaicite:1]{index=1}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract image metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=raw,value=latest
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .wasp/build
+          file: .wasp/build/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
