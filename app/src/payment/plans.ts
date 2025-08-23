@@ -18,6 +18,7 @@ export interface PaymentPlan {
   // E.g. this might be price id on Stripe, or variant id on LemonSqueezy.
   getPaymentProcessorPlanId: () => string;
   effect: PaymentPlanEffect;
+  getPlanType: () => PaymentPlanId;
 }
 
 export type PaymentPlanEffect = { kind: 'subscription' } | { kind: 'credits'; amount: number };
@@ -26,14 +27,17 @@ export const paymentPlans: Record<PaymentPlanId, PaymentPlan> = {
   [PaymentPlanId.Hobby]: {
     getPaymentProcessorPlanId: () => requireNodeEnvVar('PAYMENTS_HOBBY_SUBSCRIPTION_PLAN_ID'),
     effect: { kind: 'subscription' },
+    getPlanType: () => PaymentPlanId.Hobby,
   },
   [PaymentPlanId.Pro]: {
     getPaymentProcessorPlanId: () => requireNodeEnvVar('PAYMENTS_PRO_SUBSCRIPTION_PLAN_ID'),
     effect: { kind: 'subscription' },
+    getPlanType: () => PaymentPlanId.Pro,
   },
   [PaymentPlanId.Credits10]: {
     getPaymentProcessorPlanId: () => requireNodeEnvVar('PAYMENTS_CREDITS_10_PLAN_ID'),
     effect: { kind: 'credits', amount: 10 },
+    getPlanType: () => PaymentPlanId.Credits10,
   },
 };
 

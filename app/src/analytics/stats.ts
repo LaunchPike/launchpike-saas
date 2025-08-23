@@ -50,6 +50,9 @@ export const calculateDailyStats: DailyStatsJob<never, void> = async (_args, con
       case 'lemonsqueezy':
         totalRevenue = await fetchTotalLemonSqueezyRevenue();
         break;
+      case 'unibee':
+        totalRevenue = await fetchTotalUnibeeRevenue();
+        break;
       default:
         throw new Error(`Unsupported payment processor: ${paymentProcessor.id}`);
     }
@@ -196,5 +199,54 @@ async function fetchTotalLemonSqueezyRevenue() {
   } catch (error) {
     console.error('Error fetching Lemon Squeezy revenue:', error);
     throw error;
+  }
+}
+
+async function fetchTotalUnibeeRevenue() {
+  const UNIBEE_API_URL = process.env.UNIBEE_API_URL || 'https://api-sandbox.unibee.top'
+  const UNIBEE_API_KEY = process.env.UNIBEE_PUBLIC_KEY
+
+  if (!UNIBEE_API_KEY) {
+    throw new Error('UNIBEE_PUBLIC_KEY is not defined in environment variables')
+  }
+
+  let totalRevenue = 0
+  let page = 1
+  let hasNext = true
+
+  try {
+    while (hasNext) {
+      const response = await fetch(`${UNIBEE_API_URL}/v1/orders?page=${page}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${UNIBEE_API_KEY}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`Failed to fetch UniBee orders: ${errorText}`)
+        throw new Error(`Failed to fetch UniBee orders (status ${response.status})`)
+      }
+
+      const data = await response.json()
+
+      const orders = data?.data || []
+      const meta = data?.meta || {}
+      hasNext = meta?.pagination?.hasNext || false
+      page++
+
+      for (const order of orders) {
+        if (order.status === 'paid') {
+          totalRevenue += order.total
+        }
+      }
+    }
+
+    return totalRevenue / 100
+  } catch (err) {
+    console.error('Error fetching UniBee revenue:', err)
+    throw err
   }
 }

@@ -52,20 +52,20 @@ app LaunchPike {
         userSignupFields: import { getEmailUserFields } from "@src/auth/userSignupFields",
       },
       // Uncomment to enable Google Auth (check https://wasp.sh/docs/auth/social-auth/google for setup instructions):
-      // google: { // Guide for setting up Auth via Google
-      //   userSignupFields: import { getGoogleUserFields } from "@src/auth/userSignupFields",
-      //   configFn: import { getGoogleAuthConfig } from "@src/auth/userSignupFields",
-      // },
+      google: {
+        userSignupFields: import { getGoogleUserFields } from "@src/auth/userSignupFields",
+        configFn: import { getGoogleAuthConfig } from "@src/auth/userSignupFields",
+      },
       // Uncomment to enable GitHub Auth (check https://wasp.sh/docs/auth/social-auth/github for setup instructions):
-      // gitHub: {
-      //   userSignupFields: import { getGitHubUserFields } from "@src/auth/userSignupFields",
-      //   configFn: import { getGitHubAuthConfig } from "@src/auth/userSignupFields",
-      // },
+      gitHub: {
+        userSignupFields: import { getGitHubUserFields } from "@src/auth/userSignupFields",
+        configFn: import { getGitHubAuthConfig } from "@src/auth/userSignupFields",
+      },
       // Uncomment to enable Discord Auth (check https://wasp.sh/docs/auth/social-auth/discord for setup instructions):
-      // discord: {
-      //   userSignupFields: import { getDiscordUserFields } from "@src/auth/userSignupFields",
-      //   configFn: import { getDiscordAuthConfig } from "@src/auth/userSignupFields"
-      // }
+      discord: {
+        userSignupFields: import { getDiscordUserFields } from "@src/auth/userSignupFields",
+        configFn: import { getDiscordAuthConfig } from "@src/auth/userSignupFields"
+      }
     },
     onAuthFailedRedirectTo: "/login",
     onAuthSucceededRedirectTo: "/demo-app",
@@ -87,11 +87,11 @@ app LaunchPike {
     // NOTE: "Dummy" provider is just for local development purposes.
     //   Make sure to check the server logs for the email confirmation url (it will not be sent to an address)!
     //   Once you are ready for production, switch to e.g. "SendGrid" or "Mailgun" providers. Check out https://docs.opensaas.sh/guides/email-sending/ .
-    provider: Dummy,
+    provider: Mailgun,
     defaultFrom: {
       name: "LaunchPike",
       // When using a real provider, e.g. SendGrid, you must use the same email address that you configured your account to send out emails with!
-      email: "noreply@launchpike.com"
+      email: "info@launchpike.org"
     },
   },
 }
@@ -210,7 +210,14 @@ api paymentsWebhook {
   fn: import { paymentsWebhook } from "@src/payment/webhook",
   entities: [User],
   middlewareConfigFn: import { paymentsMiddlewareConfigFn } from "@src/payment/webhook",
-  httpRoute: (POST, "/payments-webhook")
+  httpRoute: (POST, "/payments-webhook"),
+  auth: false
+}
+
+api testWebhook {
+  fn: import { testWebhook } from "@src/payment/testWebhook",
+  entities: [User],
+  httpRoute: (POST, "/test-webhook")
 }
 //#endregion
 
