@@ -15,21 +15,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: '${{ env.APP_DIR }}/app/package-lock.json'
-
       - name: Install Wasp CLI
         run: |
           curl -sSL https://get.wasp-lang.dev/installer.sh | sh
           echo "$HOME/.wasp/bin" >> "$GITHUB_PATH"
 
-      - name: Install deps
-        working-directory: ./app
-        run: npm ci
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+        run: npm install --prefix ./app
 
       - name: Build with Wasp
         working-directory: ./app
