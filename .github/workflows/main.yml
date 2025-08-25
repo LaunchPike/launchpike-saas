@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-        run: npm install --prefix ./app
+      - run: npm install --prefix ./app
 
       - name: Build with Wasp
         working-directory: ./app
