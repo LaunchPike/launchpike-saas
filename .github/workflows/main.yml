@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: wasp-app
+  IMAGE_NAME: launchpike-saas
 
 jobs:
   build-image:
@@ -17,8 +17,8 @@ jobs:
 
       - name: Install Wasp CLI
         run: |
-          curl -sSL https://get.wasp-lang.dev/installer.sh | sh
-          echo "$HOME/.wasp/bin" >> "$GITHUB_PATH"
+          curl -sSL https://get.wasp.sh/installer.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -47,9 +47,10 @@ jobs:
 
       - name: Build image (no push)
         uses: docker/build-push-action@v6
+        
         with:
-          context: .wasp/build
-          file: .wasp/build/Dockerfile
+          context: .
+          file: ./app/.wasp/build/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: false
