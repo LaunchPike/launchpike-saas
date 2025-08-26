@@ -1,3 +1,4 @@
+name: Build and Deploy API Server
 on:
   push:
     branches:
@@ -5,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: launchpike-saas
+  IMAGE_NAME: launchpike-saas-api
 
 jobs:
   build-image:

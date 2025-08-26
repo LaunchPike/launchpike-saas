@@ -1,0 +1,46 @@
+name: Build and Deploy Client
+on:
+  push:
+    branches:
+    - main
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: launchpike-saas-web
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Wasp CLI
+        run: |
+          curl -sSL https://get.wasp.sh/installer.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Install packages and Build
+        run: npm install --prefix ./app
+
+      - name: Build with Wasp
+        working-directory: ./app
+        run: wasp build
+
+      - name: Install and Build Web App
+        working-directory: ./app/.wasp/build/web-app
+        run: npm install && npm run build
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./app/.wasp/build/web-app
+          file: ./app/web-client-Dockerfile
+          push: false
+          tags: ${{ env.IMAGE_NAME }}
