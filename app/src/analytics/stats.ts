@@ -211,12 +211,12 @@ async function fetchTotalUnibeeRevenue() {
   }
 
   let totalRevenue = 0
-  let page = 1
+  let page = 0
   let hasNext = true
 
   try {
     while (hasNext) {
-      const response = await fetch(`${UNIBEE_API_URL}/v1/orders?page=${page}`, {
+      const response = await fetch(`${UNIBEE_API_URL}/merchant/payment/list?page=${page}&count=100`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -232,14 +232,12 @@ async function fetchTotalUnibeeRevenue() {
 
       const data = await response.json()
 
-      const orders = data?.data || []
-      const meta = data?.meta || {}
-      hasNext = meta?.pagination?.hasNext || false
-      page++
+      const orders = data?.data?.paymentDetails || []
+      hasNext = data?.total > (++page * 100)
 
       for (const order of orders) {
-        if (order.status === 'paid') {
-          totalRevenue += order.total
+        if (order.payment?.status === 20) {
+          totalRevenue += order.payment.totalAmount
         }
       }
     }
