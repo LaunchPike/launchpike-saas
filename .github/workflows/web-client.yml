@@ -37,10 +37,30 @@ jobs:
         working-directory: ./app/.wasp/build/web-app
         run: npm install && npm run build
 
-      - name: Build Docker Image
-        uses: docker/build-push-action@v6
+
+      # Build and push backend Docker image to ghcr.io
+      - name: Build and push backend Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}/${{ env.IMAGE_NAME }}
+          docker build -t $IMAGE_NAME:${{ github.sha }} -f ./app/web-client-Dockerfile ./app/.wasp/build/web-app
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push $IMAGE_NAME:${{ github.sha }}
+
+      # SSH to server, pull the latest backend Docker image, and run it
+      - name: Deploy backend container on server
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          context: ./app/.wasp/build/web-app
-          file: ./app/web-client-Dockerfile
-          push: false
-          tags: ${{ env.IMAGE_NAME }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -euo pipefail
+            IMAGE_NAME=ghcr.io/${{ github.repository }}/${{ env.IMAGE_NAME }}
+            TAG=${{ github.sha }}
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            docker pull $IMAGE_NAME:$TAG || (sleep 3 && docker pull $IMAGE_NAME:$TAG)
+            docker rm -f ${{ env.IMAGE_NAME}} || true
+            docker run -d --name ${{ env.IMAGE_NAME}} --restart unless-stopped \
+              -p :3001:3001 \
+              -e NODE_ENV=production \
+              $IMAGE_NAME:$TAG

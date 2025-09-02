@@ -1,0 +1,122 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download SPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: web-build
+
+      # Upload SPA build to the server as a temp build context
+      - name: Upload SPA to server temp build dir
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete
+          path: web-build/
+          remote_path: /tmp/${{ vars.SITE_DIR }}-nginx-build/web/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_KEY }}
+
+      # Build & run backend container (unchanged)
+      - name: Deploy backend container
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_NAME: ghcr.io/${{ github.repository }}/app
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -euo pipefail
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            docker pull $IMAGE_NAME:${{ github.sha }} || (sleep 3 && docker pull $IMAGE_NAME:${{ github.sha }})
+            docker rm -f myapp-api || true
+            docker run -d --name myapp-api --restart unless-stopped \
+              -p 127.0.0.1:3001:3001 \
+              -e NODE_ENV=production \
+              -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+              -e SESSION_SECRET='${{ secrets.SESSION_SECRET }}' \
+              $IMAGE_NAME:${{ github.sha }} \
+              sh -c "npx prisma migrate deploy && node server.js"
+
+      # === NEW: Build an Nginx image from a generated Dockerfile & config ===
+      - name: Build and run nginx reverse proxy container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -euo pipefail
+            BUILD_DIR=/tmp/${{ vars.SITE_DIR }}-nginx-build
+            IMG_NAME=${{ vars.SITE_DIR }}-nginx
+            TAG=${{ github.sha }}
+
+            # 1) Write nginx.conf from inline template (envsubst-like using bash vars)
+            SERVER_NAME='${{ vars.SERVER_NAME }}'
+            API_UPSTREAM='http://127.0.0.1:3001/'
+            GZIP='${{ vars.GZIP_STATIC }}'
+
+            cat > $BUILD_DIR/nginx.conf <<NGINXCONF
+            map \$http_upgrade \$connection_upgrade { default close; websocket upgrade; }
+
+            server {
+                listen 80;
+                server_name ${SERVER_NAME};
+
+                root /usr/share/nginx/html;   # SPA copied into image
+                index index.html;
+
+                gzip ${GZIP};
+                gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+                location / {
+                    try_files \$uri /index.html;
+                }
+
+                location /api/ {
+                    proxy_pass ${API_UPSTREAM};
+                    proxy_http_version 1.1;
+
+                    proxy_set_header Host              \$host;
+                    proxy_set_header X-Real-IP         \$remote_addr;
+                    proxy_set_header X-Forwarded-For   \$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto \$scheme;
+                    proxy_set_header Upgrade           \$http_upgrade;
+                    proxy_set_header Connection        \$connection_upgrade;
+
+                    proxy_read_timeout 300;
+                    proxy_send_timeout 300;
+                }
+            }
+            NGINXCONF
+
+            # 2) Write Dockerfile for nginx (created at deploy time, not in repo)
+            cat > $BUILD_DIR/Dockerfile <<'DOCKERFILE'
+            FROM nginx:1.27-alpine
+            # remove default config
+            RUN rm -f /etc/nginx/conf.d/default.conf
+            # add our config
+            COPY nginx.conf /etc/nginx/conf.d/app.conf
+            # add SPA
+            COPY web/ /usr/share/nginx/html/
+            # healthcheck: ensure nginx is up
+            HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://127.0.0.1/ || exit 1
+            DOCKERFILE
+
+            # 3) Build image locally on the server
+            docker build -t ${IMG_NAME}:${TAG} $BUILD_DIR
+
+            # 4) Run container (bind to public :80; TLS optional later)
+            docker rm -f myapp-nginx || true
+            docker run -d --name myapp-nginx --restart unless-stopped \
+              -p 80:80 \
+              ${IMG_NAME}:${TAG}
+
+            echo "Nginx reverse proxy container is running on port 80 for ${SERVER_NAME}"
