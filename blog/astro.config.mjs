@@ -8,7 +8,7 @@ import tailwindcss from '@tailwindcss/vite';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://LaunchPike.github.io',
-  base: '/launchpike-saas',
+  base: process.env.PUBLIC_BASE_URL || '/launchpike-saas',
   trailingSlash: 'always',
   integrations: [react()],
 

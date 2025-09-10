@@ -24,7 +24,7 @@ export default function FAQAccordion({ items = [] }) {
           >
             <span className="font-bold text-[20px] text-left">{question}</span>
             <img
-              src="/chevron-up.svg"
+              src={`${PUBLIC_BASE_URL ?? ''}/chevron-up.svg`}
               alt="˅"
               className={`ml-auto h-6 w-6 transition-transform duration-200 ${openStates[idx] ? 'rotate-180' : ''}`}
             />

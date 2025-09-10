@@ -1,39 +1,41 @@
 ---
+const PUBLIC_BASE_URL = import.meta.env.PUBLIC_BASE_URL || "";
+
 const logos = [
   {
-    src: "/logos/Lemon.png",
+    src: `${PUBLIC_BASE_URL}/logos/Lemon.png`,
     alt: "Lemon Squeezy",
     link: "https://www.lemonsqueezy.com",
   },
   {
-    src: "/logos/Logo_Google_Analytics.png",
+    src: `${PUBLIC_BASE_URL}/logos/Logo_Google_Analytics.png`,
     alt: "Google Analytics",
     link: "https://analytics.google.com",
   },
   {
-    src: "/logos/nodejs-logo-svgrepo-com.png",
+    src: `${PUBLIC_BASE_URL}/logos/nodejs-logo-svgrepo-com.png`,
     alt: "Node.js",
     link: "https://nodejs.org",
   },
   {
-    src: "/logos/plausible_logo.png",
+    src: `${PUBLIC_BASE_URL}/logos/plausible_logo.png`,
     alt: "Plausible",
     link: "https://plausible.io",
   },
   {
-    src: "/logos/Stripe_Logo,_revised_2016.png",
+    src: `${PUBLIC_BASE_URL}/logos/Stripe_Logo,_revised_2016.png`,
     alt: "Stripe",
     link: "https://stripe.com",
   },
-  { src: "/logos/astro.png", alt: "Astro", link: "https://astro.build/" },
-  { src: "/logos/chatgpt.png", alt: "ChatGPT", link: "https://chatgpt.com/" },
-  { src: "/logos/SVG.png", alt: "SVG", link: "#" },
+  { src: `${PUBLIC_BASE_URL}/logos/astro.png`, alt: "Astro", link: "https://astro.build/" },
+  { src: `${PUBLIC_BASE_URL}/logos/chatgpt.png`, alt: "ChatGPT", link: "https://chatgpt.com/" },
+  { src: `${PUBLIC_BASE_URL}/logos/SVG.png`, alt: "SVG", link: "#" },
   {
-    src: "/logos/Tailwind_CSS_Logo.png",
+    src: `${PUBLIC_BASE_URL}/logos/Tailwind_CSS_Logo.png`,
     alt: "Tailwind CSS",
     link: "https://tailwindcss.com",
   },
-  { src: "/logos/unibee.png", alt: "Unibee", link: "https://unibee.dev/" },
+  { src: `${PUBLIC_BASE_URL}/logos/unibee.png`, alt: "Unibee", link: "https://unibee.dev/" },
 ];
 ---
 

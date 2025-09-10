@@ -2,10 +2,12 @@
 import "../styles/global.css";
 import "../styles/landing.css";
 import Footer from "../components/Footer.astro";
+const PUBLIC_BASE_URL = import.meta.env.PUBLIC_BASE_URL || "";
+
 const {
   title = "Launchpike",
   description = "Ship faster with confidence.",
-  ogImage = "/og.png",
+  ogImage = `${PUBLIC_BASE_URL}/og.png`,
 } = Astro.props;
 ---
 
@@ -18,7 +20,7 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
-    <link rel="icon" href="/favicon.svg" />
+    <link rel="icon" href={`${PUBLIC_BASE_URL}/favicon.svg`} />
   </head>
   <body class="antialiased">
     <main class="min-h-screen px-40">
