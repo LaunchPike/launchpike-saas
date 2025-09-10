@@ -1,0 +1,49 @@
+:host{
+  *:before,
+  *:after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
+
+
+.scroll-container {
+  position: sticky;
+  top:0;
+  left: 0;
+  right: 0;
+  will-change: transform;
+
+  .ghost {
+    width: 100vw;
+  }
+}
+
+.slides-container {
+  position: relative;
+  height: 100vh;
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 100px;
+  align-items: start;
+  gap: 15px;
+
+  .slides {
+    position: relative;
+    display: flex;
+    // background: url('/Timer.svg') no-repeat bottom;
+    // padding-bottom: 128px;
+
+    & > *:not(:last-child) {
+      margin-right: 45px;
+    }
+
+    .slide {
+      height: 600px;
+    }
+  }
+}
+
