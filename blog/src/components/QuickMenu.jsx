@@ -1,34 +1,13 @@
-import { div } from "framer-motion/client";
-import React from "react";
-import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
 
-export default function QuickMenu() {
-  // const [isFixed, setIsFixed] = useState(false);
 
-  /* useEffect(() => {
-    const handleScroll = () => {
-        const quickMenu = document.getElementById("quick-menu");
-        if (quickMenu) {
-            const rect = quickMenu.getBoundingClientRect();
-            setIsFixed(rect.top >= 0 && rect.bottom <= window.innerHeight);
-        }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-}, []); */
+export default function QuickMenuComponent() {
 
   const reduce = useReducedMotion();
   const animationDuration = 0.8;
 
   return (
-    // <div
-    //     id="quick-menu"
-    //     className={`flex flex-row items-center bg-white rounded-2xl gap-[200px] py-2.5 px-4 w-fit left-1/2 transform -translate-x-1/2 ${
-    //         isFixed ? "fixed bottom-2.5 z-50" : "absolute"
-    //     }`}
-    // >
     <motion.div
       initial={{ opacity: 0, filter: "blur(12px)" }}
       whileInView={{ opacity: 1, filter: "blur(0px)" }}

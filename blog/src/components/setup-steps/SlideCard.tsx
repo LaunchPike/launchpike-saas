@@ -1,4 +1,4 @@
-const PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || '';
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
 
 interface SlideCardProps {
     slideNumber: number;
