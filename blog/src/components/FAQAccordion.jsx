@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
 
 export default function FAQAccordion({ items = [] }) {
   const [openStates, setOpenStates] = useState(items.map(item => item.isOpen || false));

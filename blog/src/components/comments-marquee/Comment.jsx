@@ -1,3 +1,5 @@
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
+
 export default function Comment({ name, title, comment }) {
   return (
     <div className="comment-card p-4 border border-[#ECECEC] bg-[#F9FAFB] shadow-sm shadow-gray-300 rounded-xl flex flex-col gap-10">
