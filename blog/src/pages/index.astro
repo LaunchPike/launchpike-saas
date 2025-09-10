@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../layouts/LandingLayout.astro";
+import Hero from "../components/Hero.astro";
+import Features from "../components/Features.astro";
+import Quote from "../components/Quote.astro";
+import FAQ from "../components/FAQ.astro";
+import QuickMenu from "../components/QuickMenu.astro";
+
+import { hero, features, faq } from "../data/site";
+import SetupSteps from "../components/SetupSteps.astro";
+import Tech from "../components/Tech.astro";
+---
+
+<BaseLayout
+  title="Launchpike"
+  description="Plan, validate, and ship product launches with fewer surprises."
+>
+  <Hero {...hero} />
+  <QuickMenu />
+  <Tech />
+  <Features items={features} />
+  <SetupSteps />
+  <Quote />
+  <FAQ questionsAndAnswers={faq} />
+</BaseLayout>

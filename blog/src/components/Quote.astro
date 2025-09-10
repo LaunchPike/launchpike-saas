@@ -1,0 +1,31 @@
+---
+import CommentsMarqueeFM from "./comments-marquee/CommentsMarquee.jsx";
+import { comments } from "../data/site.ts";
+---
+
+<div class="flex flex-col gap-5">
+  <span class="font-extrabold text-6xl w-full text-center block">
+    Join the community
+  </span>
+  <div class="flex flex-row gap-2.5 text-[#3B82F6] justify-center">
+    <a
+      class="bg-white border border-[#3B82F6] rounded-xl py-2.5 px-5 cursor-pointer"
+      href="https://telegram.org/"
+      target="_blank"
+      >Telegram
+    </a>
+    <a
+      class="bg-white border border-[#3B82F6] rounded-xl py-2.5 px-5 cursor-pointer"
+      href="https://discord.com/"
+      target="_blank"
+      >Discord
+    </a>
+    <a
+      class="bg-white border border-[#3B82F6] rounded-xl py-2.5 px-5 cursor-pointer"
+      href="https://x.com/"
+      target="_blank"
+      >X / Twitter
+    </a>
+  </div>
+  <CommentsMarqueeFM client:load rows={comments} speeds={[22, 26, 40, 18]} />
+</div>

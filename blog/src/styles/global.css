@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@tailwind utilities;
+
+@import './fonts.css';
+@import './tokens.css';
+
+@layer base {
+  /* h1 { font-size: var(--h1); line-height: 1.1; }
+  h2 { font-size: var(--h2); line-height: 1.2; }
+  .container { max-width: 1200px; margin-inline: auto; padding: 0 var(--space-4); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); }
+  .btn { display:inline-flex; align-items:center; gap:.5rem; padding:.75rem 1rem; border-radius:9999px; font-weight:600; }
+  .btn-primary { background: var(--brand-600); color:white; }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); } */
+   html { font-family: 'Inter', sans-serif; color: #0a0a0a; }
+}
+
+/* @keyframes fade-in-blur {
+      0% {
+        opacity: 0;
+        filter: blur(10px);
+      }
+      100% {
+        opacity: 1;
+        filter: blur(0);
+      }
+}
+
+.animate-fade-in-blur {
+  animation: fade-in-blur 1.5s ease-out forwards;
+}
+
+.animation-delay-3s{
+  animation-delay: 3s;
+}
+
+.animation-delay-300ms{
+  animation-delay: 1.5s;
+} */
