@@ -25,6 +25,15 @@ jobs:
       - name: Create CNAME file
         run: echo "www.launchpike.org" > blog/public/CNAME
         
+      - name: Debug - Check blog structure
+        run: |
+          echo "Blog directory contents:"
+          ls -la blog/
+          echo "Blog src contents:"
+          ls -la blog/src/ || echo "No src directory"
+          echo "Blog pages contents:"
+          ls -la blog/src/pages/ || echo "No pages directory"
+          
       - name: Install, build, and upload site
         uses: withastro/action@v3
         with:
@@ -33,6 +42,13 @@ jobs:
           package-manager: npm
         env:
           PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
+          
+      - name: Debug - Check build output
+        run: |
+          echo "Build output:"
+          ls -la blog/dist/ || echo "No dist directory"
+          echo "Looking for index.html:"
+          find blog/dist/ -name "index.html" || echo "No index.html found"
 
   deploy:
     needs: build
