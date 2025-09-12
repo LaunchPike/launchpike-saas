@@ -1,3 +1,5 @@
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
+
 export const hero = {
   title: "Launch your SaaS MVP",
   compare: {
@@ -13,12 +15,12 @@ export const hero = {
 };
 
 export const features = [
-  { title: "Setting up payments", image: "/Card1.png" },
-  { title: "Setting up auth", image: "/Card2.png" },
-  { title: "Configuring the database", image: "/Card3.png" },
-  { title: "Email sending setup", image: "/Card4.png" },
-  { title: "Setting up analytics", image: "/Card5.png" },
-  { title: "And many more...", image: "/Card6.png" },
+  { title: "Setting up payments", image: `${PUBLIC_BASE_URL ?? ''}/Card1.png` },
+  { title: "Setting up auth", image: `${PUBLIC_BASE_URL ?? ''}/Card2.png` },
+  { title: "Configuring the database", image: `${PUBLIC_BASE_URL ?? ''}/Card3.png` },
+  { title: "Email sending setup", image: `${PUBLIC_BASE_URL ?? ''}/Card4.png` },
+  { title: "Setting up analytics", image: `${PUBLIC_BASE_URL ?? ''}/Card5.png` },
+  { title: "And many more...", image: `${PUBLIC_BASE_URL ?? ''}/Card6.png` },
 ];
 
 export const faq = [
