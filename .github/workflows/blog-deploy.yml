@@ -22,8 +22,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         
-      - name: Create CNAME file
-        run: echo "www.launchpike.org" > blog/public/CNAME
+      # Убираем создание CNAME - используем тот что в корне
+      # - name: Create CNAME file
+      #   run: echo "www.launchpike.org" > blog/public/CNAME
+        
+      - name: Copy CNAME to blog public directory
+        run: cp CNAME blog/public/CNAME
         
       - name: Debug - Check blog structure
         run: |
@@ -33,6 +37,8 @@ jobs:
           ls -la blog/src/ || echo "No src directory"
           echo "Blog pages contents:"
           ls -la blog/src/pages/ || echo "No pages directory"
+          echo "CNAME content:"
+          cat blog/public/CNAME
           
       - name: Install, build, and upload site
         uses: withastro/action@v3
@@ -40,8 +46,9 @@ jobs:
           path: ./blog
           node-version: 20
           package-manager: npm
-        env:
-          PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
+        # Убираем переменную окружения, используем настройки из config
+        # env:
+        #   PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
           
       - name: Debug - Check build output
         run: |
@@ -49,6 +56,8 @@ jobs:
           ls -la blog/dist/ || echo "No dist directory"
           echo "Looking for index.html:"
           find blog/dist/ -name "index.html" || echo "No index.html found"
+          echo "CNAME in dist:"
+          cat blog/dist/CNAME || echo "No CNAME in dist"
 
   deploy:
     needs: build
