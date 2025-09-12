@@ -18,12 +18,12 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
     const animationDuration = 0.8; // seconds
     const reduce = useReducedMotion();
     return (
-        <section className="relative w-full">
+        <section className="relative w-full" id="top-container">
             <motion.h1
                 initial={{ opacity: 0, filter: "blur(10px)" }}
                 animate={{ opacity: 1, filter: "blur(0px)" }}
                 transition={reduce ? { duration: 0 } : { duration: animationDuration, ease: "easeOut" }}
-                className="absolute w-full text-center top-40 font-extrabold text-6xl z-20"
+                className="absolute w-full text-center top-55 font-extrabold text-6xl z-20 relative"
             >
                 {title}
             </motion.h1>
@@ -54,7 +54,7 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
                     className="flex-1 border-white border-l h-[1080px] flex flex-col items-center justify-center"
                 >
                     <HoverBoard />
-                    <div className="absolute flex flex-col items-center justify-center">
+                    <div className="absolute flex flex-col items-center justify-center select-none ">
                         <span className="font-light text-[400px] leading-96"
                         >{compare.others.time}</span>
                         <div>

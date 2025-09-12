@@ -7,6 +7,14 @@
   }
 }
 
+html {
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.inner-px-40 > astro-island > section, .inner-px-40 > section, .scroll-container {
+  padding-inline: calc(var(--spacing) * 40);
+}
 
 .scroll-container {
   position: sticky;
@@ -14,6 +22,9 @@
   left: 0;
   right: 0;
   will-change: transform;
+
+  padding: 0 0 0 calc(var(--spacing) * 40);
+  overflow: hidden;
 
   .ghost {
     width: 100vw;
