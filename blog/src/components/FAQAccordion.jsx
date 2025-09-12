@@ -17,7 +17,7 @@ export default function FAQAccordion({ items = [] }) {
       {items.map(({ question, answer, isOpen }, idx) => (
         <div key={idx} className="bg-white py-4 px-5 flex flex-col gap-2 rounded-2xl w-full justify-start">
           <button
-            className="flex flex-row w-full items-center focus:outline-none"
+            className="flex flex-row w-full items-center focus:outline-none cursor-pointer"
             type="button"
             onClick={() => handleToggle(idx)}
             aria-expanded={openStates[idx]}
