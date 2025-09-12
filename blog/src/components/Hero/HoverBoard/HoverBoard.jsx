@@ -30,7 +30,7 @@ export default function HoverBoard() {
           return (
             <motion.div
               key={cellKey}
-              initial={{ color: "0A0A0A", backgroundColor: "#FFF" }}
+              initial={{ color: "0A0A0A", backgroundColor: "#FFF", fontSize: "24px", fontWeight: 300, textAlign: "center" }}
               animate={{
                 color: "#000",
                 boxShadow: "0 0 40px 0 #F0E5FE",
@@ -48,20 +48,6 @@ export default function HoverBoard() {
                     repeatDelay: 0,
                   }
               }
-              // whileHover={{
-              //   backgroundColor: hoveredCell === cellKey && reduce ? "#F0E5FE" : undefined,
-              //   scale: 1,
-              //   transition: { duration: 0 },
-              //   fontSize: "16px",
-              //   textAlign: 'center',
-              //   alignSelf: "center",
-              //   width: "100%",
-              //   height: "100%",
-              //   fontWeight: "400",
-
-              //   ease: "linear",
-              //   color: '#0A0A0A'
-              // }}
               className="hour-card flex items-center justify-center text-xs font-medium cursor-pointer rounded-sm min-h-[60px] border border-gray-100"
               onMouseEnter={() => setHoveredCell(cellKey)}
               onMouseDown={() => setHoveredCell(null)}

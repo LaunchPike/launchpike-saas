@@ -14,6 +14,12 @@
   .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); } */
    html { font-family: 'Inter', sans-serif; color: #0a0a0a; }
 }
+.hour-card:hover {
+    color: black;
+    box-shadow: 0 0 40px 0 #F0E5FE;
+    background-color: #F6EEFF !important;
+}
+
 
 /* @keyframes fade-in-blur {
       0% {
