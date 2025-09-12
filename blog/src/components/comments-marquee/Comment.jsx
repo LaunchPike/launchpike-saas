@@ -1,3 +1,5 @@
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
+
 export default function Comment({ name, title, comment }) {
   return (
     <div style={{ width: 325}} className="comment-card p-4 border border-[#ECECEC] bg-[#F9FAFB] shadow-sm shadow-gray-300 rounded-xl flex flex-col gap-10">
@@ -9,11 +11,11 @@ export default function Comment({ name, title, comment }) {
               height: 40,
               borderRadius: 50,
             }}
-            class="border-radius-50"
+            className="border-radius-50"
             src={`/photos/${name || avatar}.png`} alt={title} />
           <img
             className="absolute bottom-0 right-0 w-4 h-4 border-2 border-white rounded-full"
-            src="/telegram-icon.png"
+            src={`${PUBLIC_BASE_URL ?? ''}/telegram-icon.png`}
             alt=""
           />
         </div>

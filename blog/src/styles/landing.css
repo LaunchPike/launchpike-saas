@@ -1,8 +1,9 @@
-body{
+body {
     background: #FAFAFC url('/dot-bg.svg') repeat-y;
 }
-main{
+
+main {
     /* background: #FAFAFC url('/dot-bg.svg') repeat-y 5px; */
     max-width: 1980px;
-    margin:auto
+    margin: auto
 }

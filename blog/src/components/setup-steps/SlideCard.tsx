@@ -1,5 +1,3 @@
-import { div } from "framer-motion/client";
-
 interface SlideCardProps {
     slideNumber: number;
     isActive: boolean;
