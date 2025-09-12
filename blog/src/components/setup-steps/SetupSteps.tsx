@@ -129,7 +129,7 @@ const SmoothScroll = () => {
             className="w-[12254px] h-[15px]"
             style={{ background: bgGradient }}
           ></motion.div>
-          <img src={`${process.env.PUBLIC_BASE_URL ?? ''}/Timer.svg`} alt="" />
+          <img src="/Timer.svg" alt="" />
         </motion.section>
       </div>
       <div ref={ghostRef} style={{ height: scrollRange }} className="ghost" />

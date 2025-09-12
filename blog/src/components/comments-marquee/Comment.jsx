@@ -11,7 +11,7 @@ export default function Comment({ name, title, comment }) {
               height: 40,
               borderRadius: 50,
             }}
-            class="border-radius-50"
+            className="border-radius-50"
             src={`/photos/${name || avatar}.png`} alt={title} />
           <img
             className="absolute bottom-0 right-0 w-4 h-4 border-2 border-white rounded-full"

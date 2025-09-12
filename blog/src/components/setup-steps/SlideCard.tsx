@@ -1,5 +1,3 @@
-const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
-
 interface SlideCardProps {
     slideNumber: number;
     isActive: boolean;
@@ -10,7 +8,7 @@ export default function SlideCard({ slideNumber, isActive, paddingFromLeft }: Sl
     return (
         <div className="slide">
             <div className="relative" style={{ paddingLeft: paddingFromLeft ?? 0 }}>
-                <img src={`${PUBLIC_BASE_URL ?? ''}/setup/slide${slideNumber}.png`} alt='' />
+                <img src={`/setup/slide${slideNumber}.png`} alt='' />
                 <div className="absolute bottom-[-33px] right-[600px] w-[18px] h-[20px] bg-[#3B82F6] z-50"></div>
             </div>
         </div>
