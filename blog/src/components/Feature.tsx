@@ -51,13 +51,13 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
   );
 
   return (
-    <section id="features" className="sm:py-12 sm:pl-6 lg:px-40 lg:pb-0 flex flex-row justify-between relative w-full">
+    <section id="features" className="features sm:py-12 sm:pl-6 lg:px-40 lg:pb-0 flex flex-row justify-between relative w-full">
       <div className="flex flex-col lg:flex-row justify-center">
 
         <div className="flex flex-col justify-center flex-1 lg:sticky top-7 self-start z-10 min-w-[24rem] h-[100vh] md:h-[auto] lg:py-32 md:py-2 md:pb-32">
           <div className="flex flex-col gap-5">
-            <span className="font-extrabold text-5xl lg:text-6xl"> We feel your pain </span>
-            <span className="text-3xl lg:text-4xl font-normal">
+            <span className="features-title font-extrabold text-5xl lg:text-6xl"> We feel your pain </span>
+            <span className="features-subtitle text-3xl lg:text-4xl font-normal">
               Launching an MVP comes with 3+ days of headaches:
             </span>
           </div>

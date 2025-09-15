@@ -1,0 +1,163 @@
+.thick-glass {
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.4) 0%,
+            rgba(255, 255, 255, 0.1) 20%,
+            rgba(255, 255, 255, 0.05) 50%,
+            rgba(255, 255, 255, 0.2) 80%,
+            rgba(255, 255, 255, 0.3) 100%);
+    backdrop-filter: blur(30px) saturate(200%) brightness(110%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%) brightness(110%);
+    border: 2px solid;
+    border-image: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.6) 0%,
+            rgba(255, 255, 255, 0.2) 25%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.3) 75%,
+            rgba(255, 255, 255, 0.5) 100%) 1;
+    position: relative;
+    border-radius: 16px;
+}
+
+/* Псевдо-элементы для дополнительных отражений */
+.thick-glass::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    background: linear-gradient(45deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.3) 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.2) 75%,
+            transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.thick-glass::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    height: 30%;
+    border-radius: inherit;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.5) 0%,
+            rgba(255, 255, 255, 0.2) 50%,
+            transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Супер толстое стекло */
+.ultra-thick-glass {
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.6) 0%,
+            rgba(255, 255, 255, 0.2) 15%,
+            rgba(255, 255, 255, 0.1) 35%,
+            rgba(255, 255, 255, 0.05) 50%,
+            rgba(255, 255, 255, 0.1) 65%,
+            rgba(255, 255, 255, 0.3) 85%,
+            rgba(255, 255, 255, 0.5) 100%);
+    backdrop-filter: blur(40px) saturate(250%) brightness(120%) contrast(110%);
+    -webkit-backdrop-filter: blur(40px) saturate(250%) brightness(120%) contrast(110%);
+    border: 3px solid;
+    border-image: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.8) 0%,
+            rgba(255, 255, 255, 0.3) 20%,
+            rgba(255, 255, 255, 0.1) 40%,
+            rgba(255, 255, 255, 0.2) 60%,
+            rgba(255, 255, 255, 0.5) 80%,
+            rgba(255, 255, 255, 0.7) 100%) 1;
+    position: relative;
+    border-radius: 16px;
+}
+
+.ultra-thick-glass::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    background:
+        linear-gradient(45deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.4) 20%,
+            transparent 40%,
+            rgba(255, 255, 255, 0.3) 60%,
+            transparent 80%,
+            rgba(255, 255, 255, 0.2) 100%),
+        linear-gradient(-45deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.2) 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.1) 75%,
+            transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+    border-radius: 16px;
+}
+
+.ultra-thick-glass::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    height: 40%;
+    border-radius: inherit;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.7) 0%,
+            rgba(255, 255, 255, 0.4) 30%,
+            rgba(255, 255, 255, 0.2) 60%,
+            transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+    border-radius: 16px;
+
+}
+
+/* Фоновый градиент для демонстрации */
+.demo-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+/* Улучшенная кнопка */
+.glass-button {
+    background: linear-gradient(135deg,
+            rgba(95, 155, 254, 0.9) 100%,
+            rgba(95, 155, 254, 0.7) 100%);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+    border-radius: 16px;
+}
+
+.glass-button:hover {
+    background: linear-gradient(135deg,
+            rgba(95, 155, 254, 1) 90%,
+            rgba(95, 155, 254, 0.8) 100%);
+    transform: translateY(-2px);
+    border-radius: 16px;
+}
+
+/* Контент должен быть выше псевдо-элементов */
+.thick-glass>* {
+    position: relative;
+    z-index: 2;
+}
+
+.ultra-thick-glass>* {
+    position: relative;
+    z-index: 2;
+}
