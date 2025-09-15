@@ -36,7 +36,7 @@ export default function QuickMenuComponent() {
             <span>120</span>
           </a>
           <a
-            href=""
+            href="https://t.me/launchpike_chat"
             className="flex flex-row gap-2.5 py-2.5 px-5 border border-[#3B82F6] rounded-[12px] text-[#3B82F6]"
           >
             <img src={`${PUBLIC_BASE_URL ?? ''}/telegram-logo.svg`} alt="" />
