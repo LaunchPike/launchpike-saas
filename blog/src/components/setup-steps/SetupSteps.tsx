@@ -6,8 +6,11 @@ import { VerticalTimeline } from "./TimelineAxisVertical";
 
 export default function SmoothScroll() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const slidesContainerRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const axisRef = useRef<TimelineAxisHandle>(null);
   const [translateX, setTranslateX] = useState(0);
+  const [progressBarProgress, setProgressBarProgress] = useState(0);
 
   const TOTAL_MINUTES = 90;
   const PX_PER_MINUTE = 120;
@@ -48,9 +51,22 @@ export default function SmoothScroll() {
     return minuteToXLinear(minutes) - ANCHOR_GAP;
   };
 
+  const easeInOutCubic = (t: number): number => {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  };
+
   useEffect(() => {
+    // Установка начальных стилей
+    if (progressBarRef.current) {
+      progressBarRef.current.style.transition = 'background 0.24s ease-out';
+    }
+    
+    if (slidesContainerRef.current) {
+      slidesContainerRef.current.style.transition = 'transform 0.18s ease-out';
+    }
+
     const handleScroll = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !slidesContainerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
@@ -61,16 +77,45 @@ export default function SmoothScroll() {
       const totalDistance = startPoint - endPoint;
 
       const currentPosition = rect.top;
-      const progress = Math.max(0, Math.min(1, (startPoint - currentPosition) / totalDistance));
+      const rawProgress = Math.max(0, Math.min(1, (startPoint - currentPosition) / totalDistance));
 
-      const viewportWidth = window.innerWidth;
-      const maxTranslateX = -(TIMELINE_WIDTH - viewportWidth + 100);
-      const newTranslateX = progress * maxTranslateX;
+      // Добавляем паузы как в оригинальном скрипте
+      const pauseStart = 0.15;
+      const animationPhase = 0.70;
 
-      setTranslateX(newTranslateX);
+      let translateX: number;
+      let progressBarProgress: number;
+
+      const centerOffset = window.innerWidth / 2 - 200;
+      const maxTranslateX = -(TIMELINE_WIDTH - window.innerWidth * 0.8);
+      const startPosition = centerOffset;
+      const endPosition = maxTranslateX - centerOffset;
+
+      if (rawProgress < pauseStart) {
+        translateX = startPosition;
+        progressBarProgress = 0;
+      } else if (rawProgress < (pauseStart + animationPhase)) {
+        const phaseProgress = (rawProgress - pauseStart) / animationPhase;
+        const smoothProgress = easeInOutCubic(phaseProgress);
+        translateX = startPosition + (smoothProgress * (endPosition - startPosition));
+        progressBarProgress = smoothProgress;
+      } else {
+        translateX = endPosition;
+        progressBarProgress = 1;
+      }
+
+      setTranslateX(translateX);
+      setProgressBarProgress(progressBarProgress);
+
+      // Обновляем progress bar
+      if (progressBarRef.current) {
+        const progressPercent = progressBarProgress * 100;
+        progressBarRef.current.style.background = 
+          `linear-gradient(to right, #3B82F6 ${progressPercent}%, #D1D5DB ${progressPercent}%)`;
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
@@ -79,10 +124,13 @@ export default function SmoothScroll() {
   return (
     <div ref={containerRef} className="scroll-container" data-scroll-container>
       <div className="sticky-viewport">
-        <h2 className="timeline-title  lg:hidden">Timer to start your business</h2>
+        <h2 className="timeline-title lg:hidden">Timer to start your business</h2>
         <h2 className="timeline-title lg:hidden pl-6">What if you could save these 3+ days of setup?</h2>
-        <article className="text-3xl lg:hidden pl-6 pt-6 text-justify">With LaunchPike, you're getting a plug-n-play MVP boilerplate + step-by-step guide so you can go live today. Here's what you can do in 90 mins or less:</article>
+        <article className="text-3xl lg:hidden pl-6 pt-6 text-justify">
+          With LaunchPike, you're getting a plug-n-play MVP boilerplate + step-by-step guide so you can go live today. Here's what you can do in 90 mins or less:
+        </article>
         <div
+          ref={slidesContainerRef}
           className="slides-container"
           data-slides-container
           style={{
@@ -113,13 +161,13 @@ export default function SmoothScroll() {
           </div>
 
           <div
+            ref={progressBarRef}
             className="progress-bar"
             data-progress-bar
             style={{
               width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT
             }}
           />
-
 
           <VerticalTimeline
             totalMinutes={90}
