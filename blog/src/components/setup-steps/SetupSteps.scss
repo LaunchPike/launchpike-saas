@@ -1,60 +1,328 @@
-:host{
-  *:before,
-  *:after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+// ==========================================
+// ПЕРЕМЕННЫЕ
+// ==========================================
+$medium: 1024px;
+$tablet: 768px;
+$mobile: 480px;
+
+// ==========================================
+// КОНТЕЙНЕРЫ
+// ==========================================
+
+.scroll-container {
+  height: 500vh;
+
+  @media only screen and (max-width: $medium) {
+    // Планшет стили
+    height: fit-content;
+  }
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
   }
 }
 
-html {
-  overflow-y: scroll;
-  overflow-x: hidden;
-}
-
-.inner-px-40 > astro-island > section, .inner-px-40 > section, .scroll-container {
-  padding-inline: calc(var(--spacing) * 40);
-}
-
-.scroll-container {
+.sticky-viewport {
   position: sticky;
-  top:0;
-  left: 0;
-  right: 0;
-  will-change: transform;
-
-  padding: 0 0 0 calc(var(--spacing) * 40);
+  top: 0;
+  height: 110vh;
   overflow: hidden;
+  width: 100%;
 
-  .ghost {
-    width: 100vw;
+  @media only screen and (max-width: $medium) {
+    // Планшет стили
+  }
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
+    height: fit-content;
   }
 }
 
 .slides-container {
-  position: relative;
-  height: 100vh;
-  width: max-content;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-top: 100px;
-  align-items: start;
-  gap: 15px;
+  align-items: flex-start;
+  height: 100%;
+  width: max-content;
+  will-change: transform;
 
-  .slides {
-    position: relative;
-    display: flex;
-    // background: url('/Timer.svg') no-repeat bottom;
-    // padding-bottom: 128px;
+  @media only screen and (max-width: $medium) {
+    padding-top: 150px;
+  }
 
-    & > *:not(:last-child) {
-      margin-right: 45px;
-    }
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
 
-    .slide {
-      height: 600px;
-    }
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
+    max-width: 100%;
+    transform: none !important;
   }
 }
 
+// ==========================================
+// ЗАГОЛОВОК
+// ==========================================
+
+.timeline-title {
+
+
+  @media only screen and (max-width: $medium) {}
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 800;
+    font-size: 4rem;
+    line-height: 4rem;
+    display: flex;
+    align-items: center;
+    color: #0A0A0A;
+
+    font-size: 3rem;
+    line-height: 3rem;
+  }
+}
+
+// ==========================================
+// СЛАЙДЫ
+// ==========================================
+
+.slides {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 587px;
+
+  @media only screen and (max-width: $medium) {
+    min-height: 400px;
+  }
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
+    flex-direction: column;
+    width: 100% !important;
+    max-width: 400px;
+  }
+}
+
+.slide-wrapper {
+  position: absolute;
+
+  @media only screen and (max-width: $medium) {
+    // Планшет стили
+  }
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
+    position: relative;
+    left: 0 !important;
+  }
+}
+
+.slide {
+  position: relative;
+  height: 600px;
+  flex-shrink: 0;
+
+  .relative {
+    position: unset;
+    height: inherit;
+
+    .slide-anchor {
+      bottom: -18.5px;
+
+      @media only screen and (max-width: $medium) {
+        bottom: -38.5px;
+      }
+
+      @media only screen and (max-width: $tablet) {
+        // Мобильные стили
+      }
+
+      @media only screen and (max-width: $mobile) {
+        // Маленькие мобильные
+        display: none;
+      }
+    }
+  }
+
+  img {
+    width: 550px;
+    display: block;
+    max-width: none;
+
+    @media only screen and (max-width: $medium) {
+      width: 400px;
+    }
+
+    @media only screen and (max-width: $tablet) {
+      // Мобильные стили
+    }
+
+    @media only screen and (max-width: $mobile) {
+      // Маленькие мобильные
+    }
+  }
+
+  @media only screen and (max-width: $medium) {
+    height: 400px;
+    margin-bottom: 50px;
+  }
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
+    padding-left: 3rem;
+  }
+}
+
+// ==========================================
+// ПРОГРЕСС-БАР
+// ==========================================
+
+.progress-bar {
+  height: 12px;
+  background: linear-gradient(to right, #3B82F6 0%, #D1D5DB 0%);
+  margin-top: 8px;
+  border-radius: 6px;
+  transition: background 0.1s ease-out;
+
+  @media only screen and (max-width: $medium) {
+    position: absolute;
+    bottom: 145px;
+    z-index: 10;
+  }
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
+    display: none;
+  }
+}
+
+// ==========================================
+// ТАЙМЛАЙН
+// ==========================================
+
+.timeline-axis {
+  position: relative;
+
+  @media only screen and (max-width: $medium) {
+    // Планшет стили
+  }
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
+    display: none;
+  }
+}
+
+// ==========================================
+// ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ
+// ==========================================
+
+.mt-6 {
+  margin-top: 1.5rem;
+
+  @media only screen and (max-width: $medium) {
+    // Планшет стили
+  }
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
+  }
+}
+
+// ==========================================
+// ОТЗЫВЧИВОСТЬ (LEGACY)
+// ==========================================
+
+// .inner-px-40 > astro-island > section,
+// .inner-px-40 > section,
+// .timeline-title {
+//   padding-inline: calc(var(--spacing) * 40);
+
+//   @media only screen and (max-width: $medium) {
+//     padding-inline: calc(var(--spacing) * 10);
+//   }
+
+//   @media only screen and (max-width: $tablet) {
+//     // Мобильные стили
+//   }
+
+//   @media only screen and (max-width: $mobile) {
+//     // Маленькие мобильные
+//   }
+// }
+
+// ==========================================
+// ВЕРТИКАЛЬНЫЙ ТАЙМЛАЙН
+// ==========================================
+
+.vertical-timeline {
+  // Убираем минимальную высоту, чтобы компонент мог адаптироваться
+  height: 100% !important;
+  min-height: auto !important;
+
+  // Позиционируем в самом левом углу slides-container
+  left: 0 !important;
+  top: 150px !important;
+  position: absolute !important;
+  z-index: 10;
+
+  // Убираем трансформации, которые могут сдвигать элемент
+  transform: none !important;
+
+  @media only screen and (max-width: $medium) {
+    // Планшет стили - тоже убираем минимальную высоту
+    min-height: auto !important;
+  }
+
+  @media only screen and (max-width: $tablet) {
+    // Мобильные стили
+  }
+
+  @media only screen and (max-width: $mobile) {
+    // Маленькие мобильные
+    // display: none;
+  }
+}

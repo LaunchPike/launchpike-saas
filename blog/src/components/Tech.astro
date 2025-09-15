@@ -37,20 +37,106 @@ const logos = [
   },
   { src: `${PUBLIC_BASE_URL}/logos/unibee.png`, alt: "Unibee", link: "https://unibee.dev/" },
 ];
+
+const duplicatedLogos = [...logos, ...logos];
 ---
 
-<section class="py-10 flex flex-col gap-10">
-  <div class="flex flex-row items-center justify-around">
-    {
-      logos.map((logo) => (
-        <a target="_blank" href={logo.link}>
-          <img
-            src={logo.src}
-            alt={logo.alt}
-            class="h-12 px-1 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition duration-300"
-          />
-        </a>
-      ))
-    }
+<section class="sm-no-py py-0 lg:py-10 flex flex-col gap-10">
+  <div class="logos-container relative overflow-x-hidden">
+    <div class="logos-track flex flex-row flex-wrap items-center lg:justify-around gap-15">
+      {
+        duplicatedLogos.map((logo, index) => (
+          <a 
+            class="logo-item min-w-[100px] lg:min-w-[50px] w-fit flex-shrink-0" 
+            target="_blank" 
+            href={logo.link}
+          >
+            <img
+              src={logo.src}
+              alt={logo.alt}
+              class="h-16 lg:h-12 px-1 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition duration-300"
+            />
+          </a>
+        ))
+      }
+    </div>
   </div>
 </section>
+
+<style>
+  @media (max-width: 1023px) {
+    .logos-container {
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    .logos-container::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .logos-track {
+      animation: scroll-logos 30s linear infinite;
+      width: fit-content;
+    }
+    
+    .logos-track:hover {
+      animation-play-state: paused;
+    }
+    
+    @keyframes scroll-logos {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .logos-track {
+      justify-content: space-around;
+    }
+    
+    .logo-item:nth-child(n+11) {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const logosContainer = document.querySelector('.logos-container');
+    const logosTrack = document.querySelector('.logos-track');
+    
+    if (!logosContainer || !logosTrack) return;
+    
+    function checkScreenSize() {
+      if (window.innerWidth < 1024) {
+        logosContainer.style.overflowX = 'hidden';
+      }
+    }
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    if (window.innerWidth < 1024) {
+      logosTrack.addEventListener('mouseenter', () => {
+        logosTrack.style.animationPlayState = 'paused';
+      });
+      
+      logosTrack.addEventListener('mouseleave', () => {
+        logosTrack.style.animationPlayState = 'running';
+      });
+      
+      logosTrack.addEventListener('touchstart', () => {
+        logosTrack.style.animationPlayState = 'paused';
+      });
+      
+      logosTrack.addEventListener('touchend', () => {
+        logosTrack.style.animationPlayState = 'running';
+      });
+    }
+  });
+</script>

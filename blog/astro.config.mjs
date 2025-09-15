@@ -10,7 +10,9 @@ export default defineConfig({
   site: 'https://launchpike.org',
   base: process.env.PUBLIC_BASE_URL || '',
   trailingSlash: 'always',
-  integrations: [react()],
+  integrations: [
+    react()
+  ],
 
   vite: {
     plugins: [tailwindcss()]

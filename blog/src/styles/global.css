@@ -20,6 +20,16 @@
     background-color: #F6EEFF !important;
 }
 
+@media screen and (max-width: 500px) {
+  .sm-no-py {
+    padding-inline: 0 !important;
+    padding: 0;
+  } 
+
+  .antialiased {
+    overflow-x: hidden;
+  }
+}
 
 /* @keyframes fade-in-blur {
       0% {
