@@ -15,7 +15,7 @@ const { questionsAndAnswers = [] } = Astro.props;
     FAQ
   </span>
   <div>
-    <div class="w-[50rem] m-w-[860px] m-auto flex flex-col gap-4">
+    <div class="w-[50rem] lg:m-w-[860px] max-w-[100%] m-auto flex flex-col gap-4">
       <FAQAccordion client:load items={questionsAndAnswers} />
     </div>
   </div>

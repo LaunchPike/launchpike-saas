@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { motion, useInView } from 'framer-motion';
+import GridBackgroundCard from './GridSlides';
 
 type Slide = { title: string; image: string; };
 
@@ -50,18 +51,18 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
   );
 
   return (
-    <section id="features" className="flex flex-row justify-between relative w-full">
-      <div className="flex flex-row justify-center">
+    <section id="features" className="sm:py-12 sm:pl-6 lg:px-40 lg:pb-0 flex flex-row justify-between relative w-full">
+      <div className="flex flex-col lg:flex-row justify-center">
 
-        <div className="flex flex-col justify-center flex-1 sticky top-7 self-start z-10 min-w-[24rem] h-[100vh] py-32">
+        <div className="flex flex-col justify-center flex-1 lg:sticky top-7 self-start z-10 min-w-[24rem] h-[100vh] md:h-[auto] lg:py-32 md:py-2 md:pb-32">
           <div className="flex flex-col gap-5">
-            <span className="font-extrabold text-6xl"> We feel your pain </span>
-            <span className="text-4xl font-normal">
+            <span className="font-extrabold text-5xl lg:text-6xl"> We feel your pain </span>
+            <span className="text-3xl lg:text-4xl font-normal">
               Launching an MVP comes with 3+ days of headaches:
             </span>
           </div>
-          <aside className="md:h-[80vh] md:sticky md:top-20 self-start">
-            <ul className="flex flex-col gap-10 font-extrabold text-5xl mt-[10vh]">
+          <aside className="md:h-[80vh] md:sticky md:top-20 self-start hidden lg:flex">
+            <ul className="flex flex-col gap-10 md:gap-5 font-extrabold text-5xl mt-[10vh] md:mt-[3vh]">
               {items.map((s, i) => {
                 const isActive = i === active;
                 return (
@@ -69,7 +70,7 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
                     <button
                       onClick={() => scrollToSlide(i)}
                       className={[
-                        'w-full font-extrabold text-5xl text-left transition-all duration-200 cursor-pointer',
+                        'w-full font-extrabold text-5xl md:text-4xl text-left transition-all duration-200 cursor-pointer',
                         isActive
                           ? 'text-[##0A0A0A]'
                           : 'text-gray-600',
@@ -84,7 +85,14 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
             </ul>
           </aside>
         </div>
-        <div className="space-y-24 self-center py-96">
+        <div className="flex-col lg:hidden">
+          {
+            items.map(item => {
+              return <GridBackgroundCard {...item}/>
+            })
+          }
+        </div>
+        <div className="hidden lg:flex lg:flex-col space-y-24 self-center lg:py-96">
           {items.map((s, i) => (
             <SlidePanel
               key={s.title}
@@ -115,8 +123,6 @@ const SlidePanel = React.forwardRef<
       ref && (typeof ref === 'function' ? ref(node) : (ref.current = node));
       containerRef.current = node;
     }}>
-
-
       {/* Image animates from bottom */}
       <motion.div
         className="order-1 lg:order-2 rounded-2xl overflow-hidden border border-gray-200 bg-white"
@@ -129,7 +135,7 @@ const SlidePanel = React.forwardRef<
         <img
           src={image}
           alt={title}
-          className="w-full h-[320px] md:h-[420px] object-cover"
+          className="w-full h-[390px] lg:h-[435px] md:h-[420px] object-cover"
           loading="lazy"
         />
       </motion.div>

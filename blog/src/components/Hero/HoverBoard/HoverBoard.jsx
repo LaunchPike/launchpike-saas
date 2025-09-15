@@ -13,12 +13,10 @@ export default function HoverBoard() {
 
   return (
     <div
-      className="grid grid-cols-8 grid-rows-10 gap-0.5 p-4"
+      className="grid grid-cols-8 grid-rows-10 gap-0.5 p-4 w-[340px] h-[360px] lg:w-[600px] lg:h-[750px]"
       style={{
         gridTemplateRows: `repeat(${ROWS}, 1fr)`,
         gridTemplateColumns: `repeat(${COLS}, 1fr)`,
-        width: '600px',
-        height: '750px'
       }}
     >
       {Array.from({ length: ROWS }).map((_, r) =>
@@ -30,7 +28,7 @@ export default function HoverBoard() {
           return (
             <motion.div
               key={cellKey}
-              initial={{ color: "0A0A0A", backgroundColor: "#FFF", fontSize: "24px", fontWeight: 300, textAlign: "center" }}
+              initial={{ color: "0A0A0A", backgroundColor: "#FFF", fontWeight: 300, textAlign: "center" }}
               animate={{
                 color: "#000",
                 boxShadow: "0 0 40px 0 #F0E5FE",
@@ -48,7 +46,7 @@ export default function HoverBoard() {
                     repeatDelay: 0,
                   }
               }
-              className="hour-card flex items-center justify-center text-xs font-medium cursor-pointer rounded-sm min-h-[60px] border border-gray-100"
+              className="hour-card flex items-center justify-center text-sm lg:text-xs font-medium cursor-pointer rounded-sm min-w-[36px] min-h-[36px] lg-min-h-[60px] border border-gray-100"
               onMouseEnter={() => setHoveredCell(cellKey)}
               onMouseDown={() => setHoveredCell(null)}
               onMouseOut={() => setHoveredCell(null)}

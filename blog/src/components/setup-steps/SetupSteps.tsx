@@ -1,140 +1,149 @@
-import React, {
-  useRef,
-  useState,
-  useLayoutEffect,
-  useCallback,
-  useEffect
-} from "react";
-import ResizeObserver from "resize-observer-polyfill";
-import {
-  motion,
-  useTransform,
-  useSpring,
-  useMotionValue,
-  useScroll,
-  useMotionTemplate
-} from "framer-motion";
-import SlideCard from "./SlideCard";
+import { useEffect, useRef, useState } from "react";
 import "./SetupSteps.scss";
+import SlideCard from "./SlideCard";
+import TimelineAxis, { TimelineAxisHandle } from "./TimelineAxis";
+import { VerticalTimeline } from "./TimelineAxisVertical";
 
+export default function SmoothScroll() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const axisRef = useRef<TimelineAxisHandle>(null);
+  const [translateX, setTranslateX] = useState(0);
 
-function useElementScrollPercentage(ref: any, threshold = 0.1, displayHeight = 0) {
-  const [percentage, setPercentage] = useState(0);
+  const TOTAL_MINUTES = 90;
+  const PX_PER_MINUTE = 120;
+  const TIMELINE_WIDTH = TOTAL_MINUTES * PX_PER_MINUTE;
 
-  useEffect(() => {
-    function onScroll() {
-      if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-      // Calculate how much of the element is visible
-      const elementVisible = Math.max(0, Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0));
-      const elementPercentVisible = rect.height > 0 || displayHeight > 0 ? elementVisible / (displayHeight ?? rect.height) : 0;
-      if (elementPercentVisible >= threshold) {
-        const total = rect.height + windowHeight;
-        const visible = Math.max(0, windowHeight - rect.top);
-        setPercentage(Math.min(1, Math.max(0, visible / total)));
-      } else {
-        setPercentage(0);
-      }
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [ref, threshold]);
+  const LABEL_EVERY = 5;
+  const AXIS_PADDING_LEFT = 0;
+  const AXIS_PADDING_RIGHT = 0;
+  const ANCHOR_GAP = 18;
 
-  return percentage;
-}
+  const slideTimes: Record<number, string> = {
+    1: "0:00",
+    2: "8:31",
+    3: "18:01",
+    4: "23:21",
+    5: "33:41",
+    6: "42:31",
+    7: "52:15",
+    8: "58:41",
+    9: "74:01",
+    10: "90:00",
+  };
 
-const SmoothScroll = () => {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const ghostRef = useRef<HTMLDivElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [scrollRange, setScrollRange] = useState(0);
-  const [viewportW, setViewportW] = useState(0);
+  const parseTime = (timeStr: string): number => {
+    const [mm = "0", ss = "0"] = timeStr.split(":");
+    const minutes = Number(mm);
+    const seconds = Number(ss);
+    return minutes + seconds / 60;
+  };
 
+  const minuteToXLinear = (minute: number): number => {
+    return AXIS_PADDING_LEFT + minute * PX_PER_MINUTE;
+  };
 
-  const scrollPerc = useMotionValue(0);
-
-  useLayoutEffect(() => {
-    if (scrollRef.current) {
-      setScrollRange(scrollRef.current.scrollWidth + window.innerWidth * .8);
-    }
-  }, [scrollRef, containerRef]);
-
-  const onResize = useCallback((entries: ResizeObserverEntry[]) => {
-    for (let entry of entries) {
-      setViewportW(entry.contentRect.width);
-    }
-  }, []);
-
-  useLayoutEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => onResize(entries));
-    if (ghostRef.current) {
-      resizeObserver.observe(ghostRef.current);
-    }
-    return () => resizeObserver.disconnect();
-  }, [onResize]);
-
-  const { scrollYProgress } = useScroll();
-
-
-  const percentage = useElementScrollPercentage(containerRef, 1, typeof window !== "undefined" ? window.innerHeight : undefined);
+  const slideLeftPosition = (slideNumber: number): number => {
+    const timeStr = slideTimes[slideNumber] ?? "0:00";
+    const minutes = parseTime(timeStr);
+    return minuteToXLinear(minutes) - ANCHOR_GAP;
+  };
 
   useEffect(() => {
-    scrollPerc.set(percentage);
-  }, [percentage, scrollPerc]);
+    const handleScroll = () => {
+      if (!containerRef.current) return;
 
-  const transform = useTransform(
-    scrollPerc,
-    [0, 1],
-    [0, -scrollRange + viewportW]
-  );
-  const physics = { damping: 15, mass: 0.27, stiffness: 55 };
-  const spring = useSpring(transform, physics);
-  const bgSpring = useSpring(scrollPerc, {
-    damping: 30,
-    stiffness: 50,
-    mass: 1,
-  });
+      const rect = containerRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const containerHeight = containerRef.current.offsetHeight;
 
-  const bgPercent = useTransform(bgSpring, [0, .8], [0, 100]);
+      const startPoint = windowHeight;
+      const endPoint = -containerHeight;
+      const totalDistance = startPoint - endPoint;
 
-  // build a reactive gradient string
-  const bgGradient = useMotionTemplate`
-    linear-gradient(to right, #3B82F6 ${bgPercent}%, gray ${bgPercent}%)
-  `;
+      const currentPosition = rect.top;
+      const progress = Math.max(0, Math.min(1, (startPoint - currentPosition) / totalDistance));
 
+      const viewportWidth = window.innerWidth;
+      const maxTranslateX = -(TIMELINE_WIDTH - viewportWidth + 100);
+      const newTranslateX = progress * maxTranslateX;
+
+      setTranslateX(newTranslateX);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [TIMELINE_WIDTH]);
 
   return (
-    <div ref={containerRef}>
-      <div className="scroll-container">
-        <motion.section
-          ref={scrollRef}
-          style={{ x: spring }}
+    <div ref={containerRef} className="scroll-container" data-scroll-container>
+      <div className="sticky-viewport">
+        <h2 className="timeline-title  lg:hidden">Timer to start your business</h2>
+        <h2 className="timeline-title lg:hidden pl-6">What if you could save these 3+ days of setup?</h2>
+        <article className="text-3xl lg:hidden pl-6 pt-6 text-justify">With LaunchPike, you're getting a plug-n-play MVP boilerplate + step-by-step guide so you can go live today. Here's what you can do in 90 mins or less:</article>
+        <div
           className="slides-container"
+          data-slides-container
+          style={{
+            transform: `translateX(${translateX}px)`,
+            width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT
+          }}
         >
-          <div className="slides">
-            <SlideCard slideNumber={1} isActive={false} />
-            <SlideCard slideNumber={2} isActive={false} paddingFromLeft='450px' />
-            <SlideCard slideNumber={4} isActive={false} paddingFromLeft='750px' />
-            <SlideCard slideNumber={3} isActive={false} paddingFromLeft='450px' />
-            <SlideCard slideNumber={5} isActive={false} paddingFromLeft='550px' />
-            <SlideCard slideNumber={6} isActive={false} paddingFromLeft='650px' />
-            <SlideCard slideNumber={7} isActive={false} paddingFromLeft='750px' />
-            <SlideCard slideNumber={8} isActive={false} paddingFromLeft='300px' />
-            <SlideCard slideNumber={9} isActive={false} paddingFromLeft='850px' />
-            <SlideCard slideNumber={10} isActive={false} paddingFromLeft='1700px' />
+          <div
+            className="slides"
+            style={{
+              width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT,
+            }}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((slideNumber) => (
+              <div
+                key={slideNumber}
+                className="slide-wrapper"
+                style={{
+                  left: slideNumber === 1 ? 0 : slideLeftPosition(slideNumber)
+                }}
+              >
+                <SlideCard
+                  slideNumber={slideNumber}
+                  isActive={false}
+                />
+              </div>
+            ))}
           </div>
-          <motion.div
-            className="w-[12254px] h-[15px]"
-            style={{ background: bgGradient }}
-          ></motion.div>
-          <img src="/Timer.svg" alt="" />
-        </motion.section>
+
+          <div
+            className="progress-bar"
+            data-progress-bar
+            style={{
+              width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT
+            }}
+          />
+
+
+          <VerticalTimeline
+            totalMinutes={90}
+            labelEvery={5}
+            className="vertical-timeline absolute h-[100%] lg:hidden"
+          />
+
+          <TimelineAxis
+            ref={axisRef}
+            className="hidden lg:flex timeline-axis"
+            totalMinutes={TOTAL_MINUTES}
+            labelEvery={LABEL_EVERY}
+            paddingLeft={AXIS_PADDING_LEFT}
+            paddingRight={AXIS_PADDING_RIGHT}
+            tickLargeWidth={4}
+            tickSmallWidth={3}
+            height={200}
+            tickSmall={50}
+            tickLarge={80}
+            pxPerMinute={PX_PER_MINUTE}
+            fontSize={26}
+          />
+        </div>
       </div>
-      <div ref={ghostRef} style={{ height: scrollRange }} className="ghost" />
     </div>
   );
-};
-
-export default SmoothScroll;
+}

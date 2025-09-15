@@ -7,11 +7,11 @@
 .marquee-vertical-content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;             
+  gap: 2rem;
   animation-name: marquee-vertical-scroll;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  animation-duration: 30s;  /* overridden per-column via inline style */
+  animation-duration: 30s;
   will-change: transform;
 }
 
@@ -26,8 +26,13 @@
 }
 
 @keyframes marquee-vertical-scroll {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-50%); }
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-50%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -41,19 +46,18 @@
   overflow: hidden;
 }
 
-.child-fade-mask {
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    black 10%,
-    black 90%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    black 10%,
-    black 90%,
-    transparent 100%
-  );
+@media screen and (min-width: 876px) {
+
+  .child-fade-mask {
+    mask-image: linear-gradient(to bottom,
+        transparent 0%,
+        black 10%,
+        black 90%,
+        transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom,
+        transparent 0%,
+        black 10%,
+        black 90%,
+        transparent 100%);
+  }
 }

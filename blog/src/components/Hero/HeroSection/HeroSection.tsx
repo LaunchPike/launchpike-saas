@@ -23,18 +23,18 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
                 initial={{ opacity: 0, filter: "blur(10px)" }}
                 animate={{ opacity: 1, filter: "blur(0px)" }}
                 transition={reduce ? { duration: 0 } : { duration: animationDuration, ease: "easeOut" }}
-                className="absolute w-full text-center top-55 font-extrabold text-6xl z-20 relative"
+                className="absolute w-full text-center top-20 lg:top-55 font-extrabold z-20 relative text-5xl lg:text-6xl"
             >
                 {title}
             </motion.h1>
-            <div className="flex flex-row justify-start w-full items-center">
+            <div className="flex flex-col md:flex-row justify-start w-full items-center">
                 <motion.div
                     initial={{ opacity: 0, filter: "blur(12px)" }}
                     animate={{ opacity: 1, filter: "blur(0px)" }}
                     transition={reduce ? { duration: 0 } : { duration: animationDuration, ease: "easeOut", delay: animationDuration }}
-                    className="flex-1 border-white border-r h-full flex flex-col items-center justify-center mt-20"
+                    className="flex-1 border-white border-r h-fit lg:h-full flex flex-col items-center justify-center mt-30 lg:mt-20"
                 >
-                    <span className="font-light text-[400px] leading-96"
+                    <span className="font-light text-[190px] lg:text-[400px] block h-min leading-50 lg:leading-96"
                     >{compare.launchpike.time}
                     </span>
                     <div>
@@ -55,7 +55,7 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
                 >
                     <HoverBoard />
                     <div className="absolute flex flex-col items-center justify-center select-none ">
-                        <span className="font-light text-[400px] leading-96"
+                        <span className="font-light text-[190px] lg:text-[400px] leading-40 lg:leading-96"
                         >{compare.others.time}</span>
                         <div>
                             <span className="font-extrabold text-6xl">not </span>
