@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import "./SetupSteps.scss";
 import SlideCard from "./SlideCard";
-import TimelineAxis, { TimelineAxisHandle } from "./TimelineAxis";
-import { VerticalTimeline } from "./TimelineAxisVertical";
+import TimelineAxis, { type TimelineAxisHandle } from "./TimelineAxis";
 
 export default function SmoothScroll() {
   const containerRef = useRef<HTMLDivElement>(null);
   const slidesContainerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const axisRef = useRef<TimelineAxisHandle>(null);
+  
   const [translateX, setTranslateX] = useState(0);
-  const [progressBarProgress, setProgressBarProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeSlides, setActiveSlides] = useState<Set<number>>(new Set());
 
   const TOTAL_MINUTES = 90;
   const PX_PER_MINUTE = 120;
@@ -34,6 +35,17 @@ export default function SmoothScroll() {
     10: "90:00",
   };
 
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 480);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
   const parseTime = (timeStr: string): number => {
     const [mm = "0", ss = "0"] = timeStr.split(":");
     const minutes = Number(mm);
@@ -56,7 +68,53 @@ export default function SmoothScroll() {
   };
 
   useEffect(() => {
-    // Установка начальных стилей
+    if (!isMobile) return;
+
+    const handleMobileScroll = () => {
+      const viewportHeight = window.innerHeight;
+      const centerY = viewportHeight / 2;
+      const newActiveSlides = new Set<number>();
+
+      for (let i = 1; i <= 10; i++) {
+        const slideElement = document.querySelector(`[data-mobile-slide="${i}"]`) as HTMLElement;
+        if (!slideElement) {
+          continue;
+        }
+
+        const slideRect = slideElement.getBoundingClientRect();
+        const slideTop = slideRect.top;
+        const slideBottom = slideRect.bottom;
+        const slideCenter = slideTop + slideRect.height / 2;
+        
+        const threshold = viewportHeight * 0.25; // 25% от высоты экрана с каждой стороны
+        const isInCenter = slideCenter >= centerY - threshold && slideCenter <= centerY + threshold;
+        const coversCenter = slideTop <= centerY && slideBottom >= centerY;
+        
+        if (isInCenter || coversCenter) {
+          newActiveSlides.add(i);
+        }
+      }
+
+      setActiveSlides(newActiveSlides);
+    };
+
+    window.addEventListener('scroll', handleMobileScroll, { passive: true });
+    window.addEventListener('resize', handleMobileScroll, { passive: true });
+    
+    const timer = setTimeout(() => {
+      handleMobileScroll();
+    }, 200);
+
+    return () => {
+      window.removeEventListener('scroll', handleMobileScroll);
+      window.removeEventListener('resize', handleMobileScroll);
+      clearTimeout(timer);
+    };
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (isMobile) return;
+
     if (progressBarRef.current) {
       progressBarRef.current.style.transition = 'background 0.24s ease-out';
     }
@@ -79,7 +137,6 @@ export default function SmoothScroll() {
       const currentPosition = rect.top;
       const rawProgress = Math.max(0, Math.min(1, (startPoint - currentPosition) / totalDistance));
 
-      // Добавляем паузы как в оригинальном скрипте
       const pauseStart = 0.15;
       const animationPhase = 0.70;
 
@@ -105,9 +162,7 @@ export default function SmoothScroll() {
       }
 
       setTranslateX(translateX);
-      setProgressBarProgress(progressBarProgress);
 
-      // Обновляем progress bar
       if (progressBarRef.current) {
         const progressPercent = progressBarProgress * 100;
         progressBarRef.current.style.background = 
@@ -119,14 +174,43 @@ export default function SmoothScroll() {
     handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [TIMELINE_WIDTH]);
+  }, [TIMELINE_WIDTH, isMobile]);
+
+  if (isMobile) {
+    return (
+      <div className="mobile-container">
+        <div className="mobile-header">
+          <h2 className="timeline-title">What if you could save these 3+ days of setup?</h2>
+          <p className="mobile-subtitle">
+            With LaunchPike, you're getting a plug-n-play MVP boilerplate + step-by-step guide so you can go live today. Here's what you can do in 90 mins or less:
+          </p>
+        </div>
+        
+        <div className="mobile-slides-list">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((slideNumber) => (
+            <div
+              key={slideNumber}
+              className="mobile-slide-item"
+              data-mobile-slide={slideNumber}
+            >
+              <SlideCard
+                slideNumber={slideNumber}
+                isActive={activeSlides.has(slideNumber)}
+                isMobile={true}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="scroll-container" data-scroll-container>
       <div className="sticky-viewport">
-        <h2 className="timeline-title lg:hidden">Timer to start your business</h2>
-        <h2 className="timeline-title lg:hidden pl-6">What if you could save these 3+ days of setup?</h2>
-        <article className="text-3xl lg:hidden pl-6 pt-6 text-justify">
+        <h2 className="timeline-title lg:hidden px-6">Timer to start your business</h2>
+        <h2 className="timeline-title lg:hidden px-6">What if you could save these 3+ days of setup?</h2>
+        <article className="text-3xl lg:hidden px-6 py-6 text-justify">
           With LaunchPike, you're getting a plug-n-play MVP boilerplate + step-by-step guide so you can go live today. Here's what you can do in 90 mins or less:
         </article>
         <div
@@ -154,7 +238,7 @@ export default function SmoothScroll() {
               >
                 <SlideCard
                   slideNumber={slideNumber}
-                  isActive={false}
+                  isActive={true}
                 />
               </div>
             ))}
@@ -167,12 +251,6 @@ export default function SmoothScroll() {
             style={{
               width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT
             }}
-          />
-
-          <VerticalTimeline
-            totalMinutes={90}
-            labelEvery={5}
-            className="vertical-timeline absolute h-[100%] lg:hidden"
           />
 
           <TimelineAxis
