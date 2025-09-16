@@ -1,28 +1,16 @@
-// ==========================================
-// ПЕРЕМЕННЫЕ
-// ==========================================
 $medium: 1024px;
 $tablet: 768px;
 $mobile: 480px;
 
-// ==========================================
-// КОНТЕЙНЕРЫ
-// ==========================================
-
 .scroll-container {
   height: 500vh;
 
-  @media only screen and (max-width: $medium) {
-    // Планшет стили
-    // height: fit-content;
-  }
+  @media only screen and (max-width: $medium) {}
 
-  @media only screen and (max-width: $tablet) {
-    // Мобильные стили
-  }
+  @media only screen and (max-width: $tablet) {}
 
   @media only screen and (max-width: $mobile) {
-    // Маленькие мобильные
+    height: fit-content;
   }
 }
 
@@ -71,18 +59,58 @@ $mobile: 480px;
   }
 }
 
-// ==========================================
-// ЗАГОЛОВОК
-// ==========================================
+.mobile-container {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 0;
+
+  @media only screen and (min-width: $mobile) {
+    display: none;
+  }
+}
+
+.mobile-header {
+  padding: 40px 20px;
+  text-align: left;
+  background: #ffffff;
+
+  .timeline-title {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    line-height: 2.8rem;
+    color: #0A0A0A;
+    margin: 0 0 20px 0;
+  }
+}
+
+.mobile-subtitle {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #4B5563;
+  margin: 0;
+  font-weight: 400;
+}
+
+.mobile-slides-list {
+  padding: 0 20px 40px 20px;
+}
+
+.mobile-slide-item {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
 
 .timeline-title {
-
-
   @media only screen and (max-width: $medium) {}
 
-  @media only screen and (max-width: $tablet) {
-    // Мобильные стили
-  }
+  @media only screen and (max-width: $tablet) {}
 
   @media only screen and (max-width: $mobile) {
     font-family: 'Inter';
@@ -99,10 +127,6 @@ $mobile: 480px;
   }
 }
 
-// ==========================================
-// СЛАЙДЫ
-// ==========================================
-
 .slides {
   position: relative;
   display: flex;
@@ -114,9 +138,7 @@ $mobile: 480px;
     min-height: 400px;
   }
 
-  @media only screen and (max-width: $tablet) {
-    // Мобильные стили
-  }
+  @media only screen and (max-width: $tablet) {}
 
   @media only screen and (max-width: $mobile) {
     // Маленькие мобильные
@@ -129,16 +151,11 @@ $mobile: 480px;
 .slide-wrapper {
   position: absolute;
 
-  @media only screen and (max-width: $medium) {
-    // Планшет стили
-  }
+  @media only screen and (max-width: $medium) {}
 
-  @media only screen and (max-width: $tablet) {
-    // Мобильные стили
-  }
+  @media only screen and (max-width: $tablet) {}
 
   @media only screen and (max-width: $mobile) {
-    // Маленькие мобильные
     position: relative;
     left: 0 !important;
   }
@@ -160,12 +177,9 @@ $mobile: 480px;
         bottom: -38.5px;
       }
 
-      @media only screen and (max-width: $tablet) {
-        // Мобильные стили
-      }
+      @media only screen and (max-width: $tablet) {}
 
       @media only screen and (max-width: $mobile) {
-        // Маленькие мобильные
         display: none;
       }
     }
@@ -180,12 +194,12 @@ $mobile: 480px;
       width: 400px;
     }
 
-    @media only screen and (max-width: $tablet) {
-      // Мобильные стили
-    }
+    @media only screen and (max-width: $tablet) {}
 
     @media only screen and (max-width: $mobile) {
-      // Маленькие мобильные
+      width: 320px;
+      max-width: calc(100vw - 40px);
+      height: auto;
     }
   }
 
@@ -194,19 +208,16 @@ $mobile: 480px;
     margin-bottom: 50px;
   }
 
-  @media only screen and (max-width: $tablet) {
-    // Мобильные стили
-  }
+  @media only screen and (max-width: $tablet) {}
 
   @media only screen and (max-width: $mobile) {
-    // Маленькие мобильные
-    padding-left: 3rem;
+    height: auto;
+    margin-bottom: 0;
+    width: 100%;
+    max-width: 320px;
   }
 }
 
-// ==========================================
-// ПРОГРЕСС-БАР
-// ==========================================
 
 .progress-bar {
   height: 12px;
@@ -221,108 +232,53 @@ $mobile: 480px;
     z-index: 10;
   }
 
-  @media only screen and (max-width: $tablet) {
-    // Мобильные стили
-  }
+  @media only screen and (max-width: $tablet) {}
 
   @media only screen and (max-width: $mobile) {
-    // Маленькие мобильные
     display: none;
   }
 }
-
-// ==========================================
-// ТАЙМЛАЙН
-// ==========================================
 
 .timeline-axis {
   position: relative;
 
-  @media only screen and (max-width: $medium) {
-    // Планшет стили
-  }
+  @media only screen and (max-width: $medium) {}
 
-  @media only screen and (max-width: $tablet) {
-    // Мобильные стили
-  }
+  @media only screen and (max-width: $tablet) {}
 
   @media only screen and (max-width: $mobile) {
-    // Маленькие мобильные
     display: none;
   }
 }
 
-// ==========================================
-// ВСПОМОГАТЕЛЬНЫЕ КЛАССЫ
-// ==========================================
-
 .mt-6 {
   margin-top: 1.5rem;
 
-  @media only screen and (max-width: $medium) {
-    // Планшет стили
-  }
+  @media only screen and (max-width: $medium) {}
 
-  @media only screen and (max-width: $tablet) {
-    // Мобильные стили
-  }
+  @media only screen and (max-width: $tablet) {}
 
-  @media only screen and (max-width: $mobile) {
-    // Маленькие мобильные
-  }
+  @media only screen and (max-width: $mobile) {}
 }
 
-// ==========================================
-// ОТЗЫВЧИВОСТЬ (LEGACY)
-// ==========================================
-
-// .inner-px-40 > astro-island > section,
-// .inner-px-40 > section,
-// .timeline-title {
-//   padding-inline: calc(var(--spacing) * 40);
-
-//   @media only screen and (max-width: $medium) {
-//     padding-inline: calc(var(--spacing) * 10);
-//   }
-
-//   @media only screen and (max-width: $tablet) {
-//     // Мобильные стили
-//   }
-
-//   @media only screen and (max-width: $mobile) {
-//     // Маленькие мобильные
-//   }
-// }
-
-// ==========================================
-// ВЕРТИКАЛЬНЫЙ ТАЙМЛАЙН
-// ==========================================
-
 .vertical-timeline {
-  // Убираем минимальную высоту, чтобы компонент мог адаптироваться
   height: 100% !important;
   min-height: auto !important;
 
-  // Позиционируем в самом левом углу slides-container
   left: 0 !important;
   top: 150px !important;
   position: absolute !important;
   z-index: 10;
 
-  // Убираем трансформации, которые могут сдвигать элемент
   transform: none !important;
 
   @media only screen and (max-width: $medium) {
-    // Планшет стили - тоже убираем минимальную высоту
     min-height: auto !important;
   }
 
-  @media only screen and (max-width: $tablet) {
-    // Мобильные стили
-  }
+  @media only screen and (max-width: $tablet) {}
 
   @media only screen and (max-width: $mobile) {
-    // Маленькие мобильные
-    // display: none;
+    display: none;
   }
 }

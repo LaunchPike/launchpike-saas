@@ -37,10 +37,6 @@
 }
 
 @media screen and (max-width: 1024px) {
-  .features {
-    padding-inline: calc(var(--spacing) * 20);
-  }
-
   .features-title {
     font-size: 3rem;
   }

@@ -51,7 +51,7 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
   );
 
   return (
-    <section id="features" className="features sm:py-12 sm:pl-6 lg:px-40 lg:pb-0 flex flex-row justify-between relative w-full">
+    <section id="features" className="features py-12 px-6 lg:px-40 lg:pb-0 flex flex-row justify-between relative w-full">
       <div className="flex flex-col lg:flex-row justify-center">
 
         <div className="flex flex-col justify-center flex-1 lg:sticky top-7 self-start z-10 min-w-[24rem] h-[100vh] md:h-[auto] lg:py-32 md:py-2 md:pb-32">
@@ -110,14 +110,14 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
 /** Single slide panel: image enters from bottom + slight fade */
 const SlidePanel = React.forwardRef<
   HTMLDivElement,
-  { title: string; image: string }
->(function SlidePanel({ title, image }, ref) {
+  { key: string, title: string; image: string }
+>(function SlidePanel({ key, title, image }, ref) {
   // We'll use whileInView so it triggers on scroll into view
   const containerRef = useRef<HTMLDivElement | null>(null);
   const inView = useInView(containerRef, { amount: 0.35, margin: '0px 0px -10% 0px' });
 
   return (
-    <div ref={(node) => {
+    <div key={key} ref={(node) => {
       // forward to outside + local ref for inView
       // @ts-ignore
       ref && (typeof ref === 'function' ? ref(node) : (ref.current = node));

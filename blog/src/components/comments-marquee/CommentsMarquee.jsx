@@ -7,8 +7,20 @@ function ColumnFM({ comments, speed = 40 }) {
   const trackRef = useRef(null);
   const groupRef = useRef(null);
   const [H, setH] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const y = useMotionValue(0);
   const pausedRef = useRef(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
 
   useEffect(() => {
     if (!groupRef.current) return;
@@ -20,11 +32,12 @@ function ColumnFM({ comments, speed = 40 }) {
   }, []);
 
   useEffect(() => {
-    if (H > 0) y.set(-Math.random() * H);
-  }, [H]);
+    if (H > 0 && !isMobile) y.set(-Math.random() * H);
+  }, [H, isMobile]);
 
-  // hover pause
   useEffect(() => {
+    if (isMobile) return;
+    
     const el = trackRef.current;
     if (!el) return;
     const onEnter = () => (pausedRef.current = true);
@@ -35,10 +48,11 @@ function ColumnFM({ comments, speed = 40 }) {
       el.removeEventListener("mouseenter", onEnter);
       el.removeEventListener("mouseleave", onLeave);
     };
-  }, []);
+  }, [isMobile]);
 
   useAnimationFrame((t, delta) => {
-    if (pausedRef.current || H === 0) return;
+    if (pausedRef.current || H === 0 || isMobile) return;
+    
     const dy = -(speed * (delta / 1000));
     let next = y.get() + dy;
     if (-next >= H) next += H;
@@ -51,10 +65,10 @@ function ColumnFM({ comments, speed = 40 }) {
       <motion.div
         ref={trackRef}
         style={{
-          y,
+          y: isMobile ? 0 : y,
           display: "flex",
           flexDirection: "column",
-          willChange: "transform",
+          willChange: isMobile ? "auto" : "transform",
           backfaceVisibility: "hidden",
           transform: "translateZ(0)",
           gap: "2rem",
@@ -65,11 +79,13 @@ function ColumnFM({ comments, speed = 40 }) {
             <Comment key={`a-${i}`} name={c.name} title={c.title} comment={c.comment} />
           ))}
         </div>
-        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {comments.map((c, i) => (
-            <Comment key={`b-${i}`} name={c.name} title={c.title} comment={c.comment} />
-          ))}
-        </div>
+        {!isMobile && (
+          <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+            {comments.map((c, i) => (
+              <Comment key={`b-${i}`} name={c.name} title={c.title} comment={c.comment} />
+            ))}
+          </div>
+        )}
       </motion.div>
     </div>
   );
