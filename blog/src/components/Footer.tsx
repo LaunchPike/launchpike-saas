@@ -55,17 +55,17 @@ const Footer = () => {
                 <ul className="flex flex-col gap-3 w-fit">
                     <h3 className="font-bold">Resources</h3>
                     <li>
-                        <a target="_blank" href="https://shipfa.st/privacy-policy">
+                        <a target="_blank" href="">
                             Privacy Policy
                         </a>
                     </li>
                     <li>
-                        <a target="_blank" href="https://shipfa.st/tos">
+                        <a target="_blank" href="">
                             Terms of Service
                         </a>
                     </li>
                     <li>
-                        <a target="_blank" href="https://shipfa.st/license">
+                        <a target="_blank" href="">
                             Licenses
                         </a>
                     </li>
