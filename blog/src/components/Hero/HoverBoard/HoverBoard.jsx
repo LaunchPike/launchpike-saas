@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
-const ROWS = 10;
+const ROWS = 9;
 const COLS = 8;
 const TOTAL_DURATION = 30; // seconds
 const DIAGONALS = ROWS + COLS - 1; // 17
