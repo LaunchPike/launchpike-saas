@@ -161,3 +161,54 @@
     position: relative;
     z-index: 2;
 }
+
+/* LIQUID GLASS STYLES */
+
+.liquidGlass-wrapper {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
+}
+
+.liquidGlass-effect {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+
+  backdrop-filter: blur(3px);
+  filter: url(#glass-distortion);
+  overflow: hidden;
+  
+  isolation: isolate;
+}
+
+.liquidGlass-tint {
+  z-index: 1;
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.50);
+}
+
+.liquidGlass-shine {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  overflow: hidden;
+}
+
+.liquidGlass-text {
+  z-index: 3;
+}
+
+@keyframes moveBackground {
+  from {
+    background-position: 0% 0%;
+  }
+
+  to {
+    background-position: 0% -1500%;
+  }
+}

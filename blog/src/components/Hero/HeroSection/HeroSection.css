@@ -1,0 +1,65 @@
+.loader-bars {
+    --w1: 80px;
+    --w2: 40px;
+    --w3: 40px;
+    --h: 80px;
+
+    --dur: 700ms;
+    --gap: 50ms;
+    --start-delay: 1100ms;
+
+    width: calc(var(--w1) + var(--w2) + var(--w3));
+    height: var(--h);
+    display: flex;
+    background: #fff;
+    margin-top: 50px;
+    overflow: hidden;
+}
+
+.seg {
+    height: 100%;
+}
+
+.seg1 {
+    background: #3B82F6;
+    border-right: 1px solid #fff;
+    width: 0;
+    animation: fill1 var(--dur) ease-out forwards;
+    animation-delay: var(--start-delay);
+}
+
+@keyframes fill1 {
+    to {
+        width: var(--w1);
+    }
+}
+
+.seg2 {
+    background: #3B82F6;
+    width: 0;
+    animation: fill2 var(--dur) ease-out forwards;
+    animation-delay: calc(var(--start-delay) + var(--dur) + var(--gap));
+}
+
+@keyframes fill2 {
+    to {
+        width: var(--w2);
+    }
+}
+
+.seg3 {
+    background: #fff;
+    width: var(--w3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .seg1 {
+        animation: none;
+        width: var(--w1);
+    }
+
+    .seg2 {
+        animation: none;
+        width: var(--w2);
+    }
+}

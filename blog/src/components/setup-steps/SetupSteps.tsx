@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import "./SetupSteps.scss";
 import SlideCard from "./SlideCard";
 import TimelineAxis, { type TimelineAxisHandle } from "./TimelineAxis";
@@ -6,12 +6,20 @@ import TimelineAxis, { type TimelineAxisHandle } from "./TimelineAxis";
 export default function SmoothScroll() {
   const containerRef = useRef<HTMLDivElement>(null);
   const slidesContainerRef = useRef<HTMLDivElement>(null);
-  const progressBarRef = useRef<HTMLDivElement>(null);
   const axisRef = useRef<TimelineAxisHandle>(null);
-  
+
+  const progressTrackRef = useRef<HTMLDivElement>(null);
+  const progressFillRef = useRef<HTMLDivElement>(null);
+
   const [translateX, setTranslateX] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [activeSlides, setActiveSlides] = useState<Set<number>>(new Set());
+  const [activeSlide, setActiveSlide] = useState<number>(1);
+
+  const targetProgressRef = useRef(0);
+  const smoothProgressRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const lastTsRef = useRef<number>(0);
 
   const TOTAL_MINUTES = 90;
   const PX_PER_MINUTE = 120;
@@ -35,37 +43,78 @@ export default function SmoothScroll() {
     10: "90:00",
   };
 
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth <= 480);
-    };
-    
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
-
   const parseTime = (timeStr: string): number => {
     const [mm = "0", ss = "0"] = timeStr.split(":");
-    const minutes = Number(mm);
-    const seconds = Number(ss);
-    return minutes + seconds / 60;
+    return Number(mm) + Number(ss) / 60;
   };
 
-  const minuteToXLinear = (minute: number): number => {
-    return AXIS_PADDING_LEFT + minute * PX_PER_MINUTE;
-  };
+  const minuteToXLinear = (minute: number): number =>
+    AXIS_PADDING_LEFT + minute * PX_PER_MINUTE;
 
   const slideLeftPosition = (slideNumber: number): number => {
-    const timeStr = slideTimes[slideNumber] ?? "0:00";
-    const minutes = parseTime(timeStr);
+    const minutes = parseTime(slideTimes[slideNumber] ?? "0:00");
     return minuteToXLinear(minutes) - ANCHOR_GAP;
   };
 
-  const easeInOutCubic = (t: number): number => {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  };
+  const easeInOutCubic = (t: number): number =>
+    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  const anchors = useMemo(() => {
+    return Array.from({ length: 10 }, (_, i) => {
+      const n = i + 1;
+      return slideLeftPosition(n) + ANCHOR_GAP;
+    });
+  }, [PX_PER_MINUTE]);
+
+  function progressToXWithHolds(progress: number) {
+    if (!anchors.length) return 0;
+
+    const sections = anchors.length - 1;
+    if (sections <= 0) return anchors[0];
+
+    const START_HOLD = 0.08;
+    const END_HOLD   = 0.08;
+    const MID_HOLDS  = 0.16;
+
+    const TOTAL_HOLDS = START_HOLD + END_HOLD + MID_HOLDS;
+    const MOVE_FRACTION = Math.max(0, 1 - TOTAL_HOLDS);
+
+    const movePerSection = MOVE_FRACTION / sections;
+    const internalAnchors = Math.max(0, anchors.length - 2);
+    const holdPerInternal = internalAnchors ? MID_HOLDS / internalAnchors : 0;
+
+    let r = progress;
+
+    if (r <= START_HOLD) return anchors[0];
+    r -= START_HOLD;
+
+    for (let i = 0; i < sections; i++) {
+      if (r <= movePerSection) {
+        const localP = r / movePerSection;
+        const eased =
+          localP < 0.5 ? 4 * localP * localP * localP : 1 - Math.pow(-2 * localP + 2, 3) / 2;
+        return anchors[i] + eased * (anchors[i + 1] - anchors[i]);
+      }
+      r -= movePerSection;
+
+      const isLastAnchor = (i + 1) === sections;
+      if (!isLastAnchor && holdPerInternal > 0) {
+        if (r <= holdPerInternal) return anchors[i + 1];
+        r -= holdPerInternal;
+      }
+    }
+
+    if (r <= END_HOLD) return anchors[anchors.length - 1];
+
+    return anchors[anchors.length - 1];
+  }
+
+  useEffect(() => {
+    const checkIsMobile = () => setIsMobile(window.innerWidth <= 480);
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
 
   useEffect(() => {
     if (!isMobile) return;
@@ -73,58 +122,99 @@ export default function SmoothScroll() {
     const handleMobileScroll = () => {
       const viewportHeight = window.innerHeight;
       const centerY = viewportHeight / 2;
-      const newActiveSlides = new Set<number>();
+      const next = new Set<number>();
 
       for (let i = 1; i <= 10; i++) {
-        const slideElement = document.querySelector(`[data-mobile-slide="${i}"]`) as HTMLElement;
-        if (!slideElement) {
-          continue;
-        }
+        const el = document.querySelector(`[data-mobile-slide="${i}"]`) as HTMLElement | null;
+        if (!el) continue;
 
-        const slideRect = slideElement.getBoundingClientRect();
-        const slideTop = slideRect.top;
-        const slideBottom = slideRect.bottom;
-        const slideCenter = slideTop + slideRect.height / 2;
-        
-        const threshold = viewportHeight * 0.25; // 25% от высоты экрана с каждой стороны
+        const rect = el.getBoundingClientRect();
+        const slideCenter = rect.top + rect.height / 2;
+        const threshold = viewportHeight * 0.25;
         const isInCenter = slideCenter >= centerY - threshold && slideCenter <= centerY + threshold;
-        const coversCenter = slideTop <= centerY && slideBottom >= centerY;
-        
-        if (isInCenter || coversCenter) {
-          newActiveSlides.add(i);
-        }
-      }
+        const coversCenter = rect.top <= centerY && rect.bottom >= centerY;
 
-      setActiveSlides(newActiveSlides);
+        if (isInCenter || coversCenter) next.add(i);
+      }
+      setActiveSlides(next);
     };
 
-    window.addEventListener('scroll', handleMobileScroll, { passive: true });
-    window.addEventListener('resize', handleMobileScroll, { passive: true });
-    
-    const timer = setTimeout(() => {
-      handleMobileScroll();
-    }, 200);
-
+    window.addEventListener("scroll", handleMobileScroll, { passive: true });
+    window.addEventListener("resize", handleMobileScroll, { passive: true });
+    const t = setTimeout(handleMobileScroll, 200);
     return () => {
-      window.removeEventListener('scroll', handleMobileScroll);
-      window.removeEventListener('resize', handleMobileScroll);
-      clearTimeout(timer);
+      window.removeEventListener("scroll", handleMobileScroll);
+      window.removeEventListener("resize", handleMobileScroll);
+      clearTimeout(t);
     };
   }, [isMobile]);
 
   useEffect(() => {
     if (isMobile) return;
 
-    if (progressBarRef.current) {
-      progressBarRef.current.style.transition = 'background 0.24s ease-out';
-    }
-    
-    if (slidesContainerRef.current) {
-      slidesContainerRef.current.style.transition = 'transform 0.18s ease-out';
-    }
+    const updateFromProgress = (p: number) => {
+      const knobX = progressToXWithHolds(p);
+
+      const viewportCenterOffset = window.innerWidth * 0.4;
+      const startPosition = viewportCenterOffset;
+      const endPosition = -(TIMELINE_WIDTH - window.innerWidth * 0.8) - viewportCenterOffset;
+
+      const fullSpan = anchors[anchors.length - 1] - anchors[0] || 1;
+      const t = (knobX - anchors[0]) / fullSpan;
+      const currentTranslate = startPosition + t * (endPosition - startPosition);
+      setTranslateX(currentTranslate);
+
+      const last = anchors.length - 1;
+      let activeIdx = 0;
+      if (knobX >= anchors[last]) {
+        activeIdx = last;
+      } else {
+        for (let i = 0; i < last; i++) {
+          if (knobX >= anchors[i] && knobX < anchors[i + 1]) { activeIdx = i; break; }
+        }
+      }
+      const newActive = activeIdx + 1;
+      if (newActive !== activeSlide) setActiveSlide(newActive);
+
+      const segIdx = Math.min(activeIdx, last - 1);
+      const segStart = anchors[segIdx];
+      const segEnd = anchors[segIdx + 1];
+      if (progressFillRef.current) {
+        progressFillRef.current.style.left = `${segStart}px`;
+        progressFillRef.current.style.width = `${segEnd - segStart}px`;
+      }
+    };
+
+    const startRAF = () => {
+      if (rafRef.current != null) return;
+      const SPEED = 6;
+
+      const tick = (ts: number) => {
+        if (!lastTsRef.current) lastTsRef.current = ts;
+        const dt = Math.min(0.05, (ts - lastTsRef.current) / 1000);
+        lastTsRef.current = ts;
+
+        const rate = 1 - Math.exp(-SPEED * dt);
+
+        const cur = smoothProgressRef.current;
+        const tgt = targetProgressRef.current;
+        const next = cur + (tgt - cur) * rate;
+
+        smoothProgressRef.current = next;
+        updateFromProgress(next);
+
+        if (Math.abs(tgt - next) > 0.0005) {
+          rafRef.current = requestAnimationFrame(tick);
+        } else {
+          rafRef.current = null;
+        }
+      };
+
+      rafRef.current = requestAnimationFrame(tick);
+    };
 
     const handleScroll = () => {
-      if (!containerRef.current || !slidesContainerRef.current) return;
+      if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
@@ -133,48 +223,33 @@ export default function SmoothScroll() {
       const startPoint = windowHeight;
       const endPoint = -containerHeight;
       const totalDistance = startPoint - endPoint;
-
       const currentPosition = rect.top;
+
       const rawProgress = Math.max(0, Math.min(1, (startPoint - currentPosition) / totalDistance));
 
-      const pauseStart = 0.15;
-      const animationPhase = 0.70;
+      const globalPauseStart = 0.15;
+      const globalMovePhase = 0.70;
 
-      let translateX: number;
-      let progressBarProgress: number;
+      let movedProgress = 0;
+      if (rawProgress <= globalPauseStart) movedProgress = 0;
+      else if (rawProgress < globalPauseStart + globalMovePhase) {
+        const p = (rawProgress - globalPauseStart) / globalMovePhase;
+        movedProgress = Math.max(0, Math.min(1, p));
+      } else movedProgress = 1;
 
-      const centerOffset = window.innerWidth / 2 - 200;
-      const maxTranslateX = -(TIMELINE_WIDTH - window.innerWidth * 0.8);
-      const startPosition = centerOffset;
-      const endPosition = maxTranslateX - centerOffset;
-
-      if (rawProgress < pauseStart) {
-        translateX = startPosition;
-        progressBarProgress = 0;
-      } else if (rawProgress < (pauseStart + animationPhase)) {
-        const phaseProgress = (rawProgress - pauseStart) / animationPhase;
-        const smoothProgress = easeInOutCubic(phaseProgress);
-        translateX = startPosition + (smoothProgress * (endPosition - startPosition));
-        progressBarProgress = smoothProgress;
-      } else {
-        translateX = endPosition;
-        progressBarProgress = 1;
-      }
-
-      setTranslateX(translateX);
-
-      if (progressBarRef.current) {
-        const progressPercent = progressBarProgress * 100;
-        progressBarRef.current.style.background = 
-          `linear-gradient(to right, #3B82F6 ${progressPercent}%, #D1D5DB ${progressPercent}%)`;
-      }
+      targetProgressRef.current = movedProgress;
+      startRAF();
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [TIMELINE_WIDTH, isMobile]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      lastTsRef.current = 0;
+    };
+  }, [isMobile, TIMELINE_WIDTH, anchors, activeSlide]);
 
   if (isMobile) {
     return (
@@ -185,25 +260,19 @@ export default function SmoothScroll() {
             With LaunchPike, you're getting a plug-n-play MVP boilerplate + step-by-step guide so you can go live today. Here's what you can do in 90 mins or less:
           </p>
         </div>
-        
+
         <div className="mobile-slides-list">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((slideNumber) => (
-            <div
-              key={slideNumber}
-              className="mobile-slide-item"
-              data-mobile-slide={slideNumber}
-            >
-              <SlideCard
-                slideNumber={slideNumber}
-                isActive={activeSlides.has(slideNumber)}
-                isMobile={true}
-              />
+          {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+            <div key={n} className="mobile-slide-item" data-mobile-slide={n}>
+              <SlideCard slideNumber={n} isActive={activeSlides.has(n)} isMobile />
             </div>
           ))}
         </div>
       </div>
     );
   }
+
+  const PIN_LEFT = 0;
 
   return (
     <div ref={containerRef} className="scroll-container" data-scroll-container>
@@ -213,6 +282,7 @@ export default function SmoothScroll() {
         <article className="text-3xl lg:hidden px-6 py-6 text-justify">
           With LaunchPike, you're getting a plug-n-play MVP boilerplate + step-by-step guide so you can go live today. Here's what you can do in 90 mins or less:
         </article>
+
         <div
           ref={slidesContainerRef}
           className="slides-container"
@@ -224,34 +294,34 @@ export default function SmoothScroll() {
         >
           <div
             className="slides"
-            style={{
-              width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT,
-            }}
+            style={{ width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT }}
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((slideNumber) => (
-              <div
-                key={slideNumber}
-                className="slide-wrapper"
-                style={{
-                  left: slideNumber === 1 ? 0 : slideLeftPosition(slideNumber)
-                }}
-              >
-                <SlideCard
-                  slideNumber={slideNumber}
-                  isActive={true}
-                />
-              </div>
-            ))}
+            {[1,2,3,4,5,6,7,8,9,10].map((n) => {
+              const leftPx = n === 1 ? 0 : slideLeftPosition(n);
+              const viewX  = translateX + leftPx;
+              const shouldStick = n <= activeSlide;
+              const stickyOffset = shouldStick ? Math.max(0, PIN_LEFT - viewX) : 0;
+
+              return (
+                <div
+                  key={n}
+                  className="slide-wrapper"
+                  style={{
+                    left: leftPx,
+                    transform: `translateX(${stickyOffset}px)`,
+                    zIndex: n === activeSlide ? 3 : (n < activeSlide ? 2 : 1),
+                    pointerEvents: n === activeSlide ? "auto" : "none",
+                  }}
+                >
+                  <SlideCard slideNumber={n} isActive={activeSlide === n} />
+                </div>
+              );
+            })}
           </div>
 
-          <div
-            ref={progressBarRef}
-            className="progress-bar"
-            data-progress-bar
-            style={{
-              width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT
-            }}
-          />
+          <div className="progress-bar" ref={progressTrackRef} data-progress-bar>
+            <div className="progress-fill" ref={progressFillRef} />
+          </div>
 
           <TimelineAxis
             ref={axisRef}

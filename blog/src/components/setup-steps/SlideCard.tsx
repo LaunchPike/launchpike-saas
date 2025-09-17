@@ -7,34 +7,31 @@ interface SlideCardProps {
   isMobile?: boolean;
 }
 
-export default function SlideCard({ 
-  slideNumber, 
-  isActive, 
-  paddingFromLeft, 
-  isMobile = false 
+export default function SlideCard({
+  slideNumber,
+  isActive,
+  paddingFromLeft,
+  isMobile = false,
 }: SlideCardProps) {
-  console.log(`SlideCard ${slideNumber}: isActive=${isActive}, isMobile=${isMobile}`);
-  
+  const inactiveFilter = "grayscale(100%) brightness(1.15) contrast(0.92)";
+
   return (
-    <div className="slide" style={{ pointerEvents: "auto" }}>
-      <div className="relative" style={{ paddingLeft: paddingFromLeft ?? 0 }}>
-        <img 
-          src={`/setup/slide${slideNumber}.png`} 
+    <div className="slide flex items-end py-10" style={{ pointerEvents: "auto" }}>
+      <div className="relative h-fit" style={{ paddingLeft: paddingFromLeft ?? 0 }}>
+        <img
+          src={`/setup/slide${slideNumber}.png`}
           alt={`Slide ${slideNumber}`}
+          className={isActive && !isMobile ? "slide-active" : "slide-inactive"}
           style={{
-            filter: isMobile && !isActive ? 'grayscale(100%) brightness(1.3) contrast(0.95)' : 'none',
-            transition: isMobile ? 'filter 0.4s ease-in-out' : 'none',
-            opacity: isMobile && !isActive ? 0.9 : 1
+            filter: isActive ? "none" : inactiveFilter,
+            transition:
+              "filter 240ms ease, opacity 240ms ease, transform 280ms ease, box-shadow 280ms ease",
           }}
         />
-        
+
         <div
           className="slide-anchor absolute w-[18px] h-[20px] bg-[#3B82F6] z-50"
-          style={{ 
-            left: 0,
-            opacity: isMobile && !isActive ? 0.7 : 1,
-            transition: isMobile ? 'opacity 0.4s ease-in-out' : 'none'
-          }}
+          style={{ left: 0 }}
         />
       </div>
     </div>

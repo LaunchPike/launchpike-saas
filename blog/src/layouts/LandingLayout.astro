@@ -1,7 +1,9 @@
 ---
 import "../styles/global.css";
 import "../styles/landing.css";
+
 import Footer from "../components/Footer.astro";
+import { squareBgDataUrl } from "../utils/dotBg";
 const PUBLIC_BASE_URL = import.meta.env.PUBLIC_BASE_URL || "";
 
 const {
@@ -9,6 +11,13 @@ const {
   description = "Ship faster with confidence.",
   ogImage = `${PUBLIC_BASE_URL}/og.png`,
 } = Astro.props;
+const rawUrl = squareBgDataUrl({
+  gapX: 69,
+  gapY: 69,
+  squareSize: 3,
+  squareColor: "rgba(0,0,0,0.5)",
+  bgColor: "transparent",
+});
 ---
 
 <html lang="en">
@@ -22,11 +31,25 @@ const {
     <meta property="og:image" content={ogImage} />
     <link rel="icon" href={`${PUBLIC_BASE_URL}/favicon.svg`} />
   </head>
-  <body class="antialiased">
-    <main class="min-h-screen inner-px-40">
+  <body
+    data-dot-bg
+    data-pattern="staggered"
+    data-dot-gap="22"
+    data-dot-size="2.5"
+    data-dot-color="#cbd5e1"
+    data-dot-bg
+    style={`background-image:url('${rawUrl}');background-repeat:repeat;padding:32px;border-radius:12px;margin-top:24px;`}
+    class="antialiased"
+  >
+    <main class="min-h-screen max-w-[1628px] inner-px-40">
       <slot />
     </main>
 
     <Footer />
   </body>
+  <script src={"../scripts/dotBg.ts"} type="module"></script>
+  <script type="module" is:inline>
+    import { initDotBackgrounds } from "../scripts/dotBg.ts";
+    initDotBackgrounds(); // или observeDotBackgrounds() для lazy-инициализации
+  </script>
 </html>
