@@ -150,6 +150,7 @@ $mobile: 480px;
 
 .slide-wrapper {
   position: absolute;
+  will-change: transform;
 
   @media only screen and (max-width: $medium) {}
 
@@ -168,10 +169,9 @@ $mobile: 480px;
 
   .relative {
     position: unset;
-    height: inherit;
 
     .slide-anchor {
-      bottom: -18.5px;
+      bottom: -20.5px;
 
       @media only screen and (max-width: $medium) {
         bottom: -38.5px;
@@ -186,7 +186,7 @@ $mobile: 480px;
   }
 
   img {
-    width: 550px;
+    width: 500px;
     display: block;
     max-width: none;
 
@@ -215,27 +215,6 @@ $mobile: 480px;
     margin-bottom: 0;
     width: 100%;
     max-width: 320px;
-  }
-}
-
-
-.progress-bar {
-  height: 12px;
-  background: linear-gradient(to right, #3B82F6 0%, #D1D5DB 0%);
-  margin-top: 8px;
-  border-radius: 6px;
-  transition: background 0.1s ease-out;
-
-  @media only screen and (max-width: $medium) {
-    position: absolute;
-    bottom: 145px;
-    z-index: 10;
-  }
-
-  @media only screen and (max-width: $tablet) {}
-
-  @media only screen and (max-width: $mobile) {
-    display: none;
   }
 }
 
@@ -281,4 +260,84 @@ $mobile: 480px;
   @media only screen and (max-width: $mobile) {
     display: none;
   }
+}
+
+/* --- прогресс-бар --- */
+.progress-bar {
+  width: 100%;
+  position: relative;
+  height: 12px;
+  background: #e5e7eb;
+  margin-top: 12px;
+  border-radius: 0;
+  overflow: hidden;
+
+  @media only screen and (max-width: $medium) {
+    position: absolute;
+    bottom: 145px;
+    z-index: 10;
+  }
+
+  @media only screen and (max-width: $mobile) {
+    display: none;
+  }
+}
+
+.progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* управляется из JS */
+  width: 0;
+  /* управляется из JS */
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 0;
+  transition: none;
+  /* чтобы не выглядело, как "заполнение" */
+}
+
+.progress-thumb {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 28px;
+  border-radius: 6px;
+  background: #fff;
+  border: 3px solid #3b82f6;
+  box-shadow: 0 2px 10px rgba(59, 130, 246, .45);
+  pointer-events: none;
+  transition: left 180ms ease-out;
+}
+
+.slide img.slide-active {
+  border-radius: 16px;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+  filter: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide img.slide-inactive {
+  filter: grayscale(100%) brightness(0.8) contrast(0.9);
+  opacity: 1;
+  transform: none;
+  box-shadow: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pinned-slide {
+  position: absolute;
+  z-index: 30;
+  left: 24px;
+  bottom: 160px;
+  pointer-events: none;
+
+  @media only screen and (max-width: $medium) {
+    left: 16px;
+    bottom: 140px;
+  }
+
 }

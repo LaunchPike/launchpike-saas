@@ -16,10 +16,13 @@ import { hero, features, faq } from "../data/site";
   description="Plan, validate, and ship product launches with fewer surprises."
 >
   <Hero {...hero} />
-  <QuickMenu />
   <Tech />
+  <QuickMenu />
   <Features items={features} />
   <SetupSteps />
   <Quote />
   <FAQ questionsAndAnswers={faq} />
+  <section>
+    <strong>Чистый Astro</strong> с точечным фоном без гидрации
+  </section>
 </LandingLayout>

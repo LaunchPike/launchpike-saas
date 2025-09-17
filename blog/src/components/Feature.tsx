@@ -1,66 +1,75 @@
-import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react';
-import { motion, useInView } from 'framer-motion';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import GridBackgroundCard from './GridSlides';
 
-type Slide = { title: string; image: string; };
+type Slide = { title: string; image: string };
+
+// ТОНКАЯ НАСТРОЙКА "шага" между слайдами:
+const STEP_VH = 60;                            // было 90 — теперь 60vh ⬅
+const ROOT_MARGIN = '-25% 0px -25% 0px';      // раньше -30%/-30%, чуть раньше переключаем ⬅
 
 export default function Feature({ items = [] }: { items?: Array<Slide> }) {
-  const slideRefs = useMemo(
+  const sentinels = useMemo(
     () => items.map(() => React.createRef<HTMLDivElement>()),
     [items]
   );
 
-  // Track which slide is active using IntersectionObserver
   const [active, setActive] = useState(0);
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
 
-    slideRefs.forEach((ref, i) => {
-      if (!ref.current) return;
+    sentinels.forEach((ref, i) => {
+      const node = ref.current;
+      if (!node) return;
+
       const obs = new IntersectionObserver(
         (entries) => {
-          entries.forEach((e) => {
+          for (const e of entries) {
             if (e.isIntersecting) setActive(i);
-          });
+          }
         },
         {
-          // Trigger when ~45% of slide is visible
           root: null,
-          rootMargin: '0px',
-          threshold: 0.45,
+          rootMargin: ROOT_MARGIN,   // ⬅
+          threshold: 0.01,
         }
       );
-      obs.observe(ref.current);
+
+      obs.observe(node);
       observers.push(obs);
     });
 
     return () => observers.forEach((o) => o.disconnect());
-  }, [slideRefs]);
+  }, [sentinels]);
 
   const scrollToSlide = useCallback(
     (i: number) => {
-      const el = slideRefs[i]?.current;
-      if (!el) return;
-      // Adjust for any fixed header if needed (e.g., 80px)
-      const headerOffset = 24 * 16; // 96px
+      const el = sentinels[i]?.current;
+      if (!el || typeof window === 'undefined') return;
+      const headerOffset = 6 * 16; // 96px
       const y = el.getBoundingClientRect().top + window.scrollY - headerOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
     },
-    [slideRefs]
+    [sentinels]
   );
 
   return (
-    <section id="features" className="features py-12 px-6 lg:px-40 lg:pb-0 flex flex-row justify-between relative w-full">
-      <div className="flex flex-col lg:flex-row justify-center">
-
-        <div className="flex flex-col justify-center flex-1 lg:sticky top-7 self-start z-10 min-w-[24rem] h-[100vh] md:h-[auto] lg:py-32 md:py-2 md:pb-32">
+    <section
+      id="features"
+      className="features py-12 px-6 lg:px-40 lg:pb-0 flex flex-row justify-between relative w-full"
+    >
+      <div className="flex flex-col lg:flex-row justify-center w-full">
+        <div className="flex flex-1 flex-col justify-center lg:sticky top-7 self-start z-10 h-[100vh] md:h-auto lg:py-32 md:py-2 md:pb-32">
           <div className="flex flex-col gap-5">
-            <span className="features-title font-extrabold text-5xl lg:text-6xl"> We feel your pain </span>
+            <span className="features-title font-extrabold text-5xl lg:text-6xl">
+              We feel your pain
+            </span>
             <span className="features-subtitle text-3xl lg:text-4xl font-normal">
-              Launching an MVP comes with 3+ days of headaches:
+              Launching an MVP comes with <br /> 3+ days of headaches:
             </span>
           </div>
+
           <aside className="md:h-[80vh] md:sticky md:top-20 self-start hidden lg:flex">
             <ul className="flex flex-col gap-10 md:gap-5 font-extrabold text-5xl mt-[10vh] md:mt-[3vh]">
               {items.map((s, i) => {
@@ -71,9 +80,7 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
                       onClick={() => scrollToSlide(i)}
                       className={[
                         'w-full font-extrabold text-5xl md:text-4xl text-left transition-all duration-200 cursor-pointer',
-                        isActive
-                          ? 'text-[##0A0A0A]'
-                          : 'text-gray-600',
+                        isActive ? 'text-[#0A0A0A]' : 'text-gray-600',
                       ].join(' ')}
                       aria-current={isActive ? 'true' : 'false'}
                     >
@@ -85,61 +92,48 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
             </ul>
           </aside>
         </div>
-        <div className="flex-col lg:hidden">
-          {
-            items.map(item => {
-              return <GridBackgroundCard {...item}/>
-            })
-          }
-        </div>
-        <div className="hidden lg:flex lg:flex-col space-y-24 self-center lg:py-96">
-          {items.map((s, i) => (
-            <SlidePanel
-              key={s.title}
-              ref={slideRefs[i]}
-              title={s.title}
-              image={s.image}
-            />
+
+        {/* mobile stack */}
+        <div className="flex flex-1 flex-col lg:hidden">
+          {items.map((item) => (
+            <GridBackgroundCard key={item.title} {...item} />
           ))}
+        </div>
+
+        {/* desktop viewport */}
+        <div className="hidden lg:block lg:flex-1">
+          <div className="sticky top-32 h-[60vh] relative"> {/* совпадает со STEP_VH для плотности ⬅ */}
+            {items.map((s, i) => (
+              <motion.div
+                key={s.title}
+                className="absolute inset-0 rounded-2xl overflow-hidden"
+                initial={false}
+                animate={{
+                  opacity: active === i ? 1 : 0,
+                  y: active === i ? 0 : 20,
+                  scale: active === i ? 1 : 0.98,
+                }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
+                aria-hidden={active !== i}
+                style={{ pointerEvents: active === i ? 'auto' : 'none', willChange: 'transform, opacity' }}
+              >
+                <GridBackgroundCard key={s.title} {...s} />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Сентинелы: уменьшили высоту шага с 90vh до 60vh ⬅ */}
+          <div aria-hidden="true">
+            {items.map((_, i) => (
+              <div
+                key={`sentinel-${i}`}
+                ref={sentinels[i]}
+                style={{ height: `${STEP_VH}vh` }} // ⬅ было className="h-[90vh]"
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
 }
-
-/** Single slide panel: image enters from bottom + slight fade */
-const SlidePanel = React.forwardRef<
-  HTMLDivElement,
-  { key: string, title: string; image: string }
->(function SlidePanel({ key, title, image }, ref) {
-  // We'll use whileInView so it triggers on scroll into view
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const inView = useInView(containerRef, { amount: 0.35, margin: '0px 0px -10% 0px' });
-
-  return (
-    <div key={key} ref={(node) => {
-      // forward to outside + local ref for inView
-      // @ts-ignore
-      ref && (typeof ref === 'function' ? ref(node) : (ref.current = node));
-      containerRef.current = node;
-    }}>
-      {/* Image animates from bottom */}
-      <motion.div
-        className="order-1 lg:order-2 rounded-2xl overflow-hidden border border-gray-200 bg-white"
-        initial={{ y: 50, opacity: 0 }}
-        animate={inView ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
-        transition={{ duration: 0.7, ease: 'easeOut' }}
-        style={{ willChange: 'transform, opacity' }}
-      >
-        {/* Use img or next/image */}
-        <img
-          src={image}
-          alt={title}
-          className="w-full h-[390px] lg:h-[435px] md:h-[420px] object-cover"
-          loading="lazy"
-        />
-      </motion.div>
-
-    </div>
-  );
-});

@@ -1,45 +1,46 @@
 
-const GridBackgroundCard = ({ 
+const GridBackgroundCard = ({
   title = "Setting up payments",
-  number = "1", 
-  mainText = "5+ hours", 
-  subtitle = "on webhooks", 
+  number = "1",
+  mainText = "5+ hours",
+  subtitle = "on webhooks",
   description = "& integrations",
-  linkText = "Learn more"
+  linkText = "Learn more",
+  image = "",
 }) => {
   return (
-    <div className="w-full max-w-md mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 mt-8 px-2">
+    <div className="w-full max-w-md mx-auto lg:max-w-full lg:max-h-full lg:mx-0 lg:h-full">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 mt-8 px-2 lg:hidden">
         {title}
       </h2>
-      
-      <div className="relative bg-white rounded-2xl border-2 border-gray-200 overflow-hidden w-[100%] h-[388px] flex">
-        <div className="absolute inset-0 opacity-30">
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox="0 0 400 300" 
-            className="w-full h-full"
+
+      <div className="relative rounded-2xl border-2 border-gray-200 overflow-hidden w-[100%] h-[388px] flex lg:w-full lg:h-full lg:max-w-[550px] lg:max-h-[550px]">
+        <div className="absolute inset-0 opacity-30 lg:w-full lg:h-full">
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 400 300"
+            className="w-full h-full lg:hidden"
             preserveAspectRatio="xMidYMid slice"
           >
             <defs>
-              <pattern 
-                id="grid" 
-                width="20" 
-                height="20" 
+              <pattern
+                id="grid"
+                width="20"
+                height="20"
                 patternUnits="userSpaceOnUse"
               >
-                <path 
-                  d="M 20 0 L 0 0 0 20" 
-                  fill="none" 
-                  stroke="#d1d5db" 
+                <path
+                  d="M 20 0 L 0 0 0 20"
+                  fill="none"
+                  stroke="#d1d5db"
                   strokeWidth="1"
                 />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#grid)" />
-            
-            {Array.from({ length: 21 }, (_, i) => 
+
+            {Array.from({ length: 21 }, (_, i) =>
               Array.from({ length: 16 }, (_, j) => (
                 <circle
                   key={`${i}-${j}`}
@@ -53,14 +54,17 @@ const GridBackgroundCard = ({
             )}
           </svg>
         </div>
-        
-        <div className="relative z-10 p-6 w-[100%] h-[100%] flex items-end">
+
+        <div style={{
+          backgroundImage: `url(${image})`,
+          backgroundSize: 'cover'
+        }} className="relative z-10 p-6 w-[100%] h-[100%] flex flex-col items-start justify-end">
           <div className="mb-6 absolute left-6 top-6">
             <div className="bg-gray-800 text-white text-2xl font-bold w-16 h-16 rounded-xl flex items-center justify-center">
               {number}
             </div>
           </div>
-          
+
           <div className="space-y-1 w-fit">
             <h3 className="text-2xl font-bold text-gray-900">
               {mainText}
@@ -70,6 +74,9 @@ const GridBackgroundCard = ({
               {description}
             </p>
           </div>
+          <a href="" className="text-1xl text-gray-400 pt-2">
+            {linkText}
+          </a>
         </div>
       </div>
     </div>

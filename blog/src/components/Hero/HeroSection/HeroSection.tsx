@@ -1,5 +1,7 @@
 import HoverBoard from "../HoverBoard/HoverBoard.jsx";
+import "./HeroSection.css"
 import { motion, useReducedMotion } from "framer-motion";
+
 interface HeroSectionProps {
     title: string;
     compare: {
@@ -15,15 +17,15 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ title, compare }: HeroSectionProps) {
-    const animationDuration = 0.8; // seconds
+    const animationDuration = 0.1; // seconds
     const reduce = useReducedMotion();
     return (
-        <section className="relative w-full" id="top-container">
+        <section className="relative w-full flex flex-col items-start mt-[-6rem]" id="top-container">
             <motion.h1
                 initial={{ opacity: 0, filter: "blur(10px)" }}
                 animate={{ opacity: 1, filter: "blur(0px)" }}
                 transition={reduce ? { duration: 0 } : { duration: animationDuration, ease: "easeOut" }}
-                className="absolute w-full text-center top-20 lg:top-55 font-extrabold z-20 relative text-5xl lg:text-6xl"
+                className="absolute w-fit text-center top-20 left-[50%] translate-x-[-50%] lg:top-65 font-extrabold z-20 relative text-5xl lg:text-6xl"
             >
                 {title}
             </motion.h1>
@@ -41,11 +43,12 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
                         <span className="font-extrabold text-6xl">in </span>
                         <span className="font-normal text-6xl">{compare.launchpike.span}</span>
                     </div>
-                    <div className="w-[160px] h-[80px] bg-white flex flex-row mt-[50px]">
-                        <div className="bg-[#3B82F6] w-[80px] border-r border-white"></div>
-                        <div className="bg-[#3B82F6] w-[40px]"></div>
-                        <div className="bg-white w-[40px]"></div>
+                    <div className="loader-bars">
+                        <div className="seg seg1"></div>
+                        <div className="seg seg2"></div>
+                        <div className="seg seg3"></div>
                     </div>
+
                 </motion.div>
                 <motion.div
                     initial={{ opacity: 0, filter: "blur(12px)" }}
