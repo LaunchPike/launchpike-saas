@@ -1,10 +1,7 @@
 body {
     background: #FAFAFC;
-    /* background: #FAFAFC url('/dot-bg.svg') repeat-y; */
 }
 
 main {
-    /* background: #FAFAFC url('/dot-bg.svg') repeat-y 5px; */
-    /* max-width: 1980px; */
     margin: auto
 }
