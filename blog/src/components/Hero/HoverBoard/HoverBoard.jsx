@@ -18,7 +18,7 @@ export default function HoverBoard() {
 
   return (
     <div
-      className="relative top-[-8px] left-[23px] grid grid-cols-8 grid-rows-9 gap-1 w-[340px] h-[360px] lg:w-fit lg:h-fit"
+      className="relative lg:top-[-20px] lg:left-[23px] grid grid-cols-8 grid-rows-9 gap-1 w-[340px] h-[360px] lg:w-fit lg:h-fit"
       style={{
         gridTemplateRows: `repeat(${ROWS}, 1fr)`,
         gridTemplateColumns: `repeat(${COLS}, 1fr)`,

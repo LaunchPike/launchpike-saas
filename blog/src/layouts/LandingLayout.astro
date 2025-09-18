@@ -3,7 +3,7 @@ import "../styles/global.css";
 import "../styles/landing.css";
 
 import Footer from "../components/Footer.astro";
-import { squareBgDataUrl } from "../utils/dotBg";
+import { squareBgDataUrl } from "../utils/dotBg.ts";
 const PUBLIC_BASE_URL = import.meta.env.PUBLIC_BASE_URL || "";
 
 const {
@@ -38,7 +38,7 @@ const rawUrl = squareBgDataUrl({
     data-dot-size="2.5"
     data-dot-color="#cbd5e1"
     data-dot-bg
-    style={`background-image:url('${rawUrl}');background-repeat:repeat;padding:32px;border-radius:12px;margin-top:24px;`}
+    style={`background-image:url('${rawUrl}');background-repeat:repeat;`}
     class="antialiased"
   >
     <main class="min-h-screen max-w-[1628px] inner-px-40">

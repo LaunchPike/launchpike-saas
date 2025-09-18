@@ -60,7 +60,7 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
       className="features py-12 px-6 lg:px-40 lg:pb-0 flex flex-row justify-between relative w-full"
     >
       <div className="flex flex-col lg:flex-row justify-center w-full">
-        <div className="flex flex-1 flex-col justify-center lg:sticky top-7 self-start z-10 h-[100vh] md:h-auto lg:py-32 md:py-2 md:pb-32">
+        <div className="flex flex-1 flex-col justify-center lg:sticky top-7 self-start z-10 h-[100vh] lg:pt-32 md:py-2 md:pb-32">
           <div className="flex flex-col gap-5">
             <span className="features-title font-extrabold text-5xl lg:text-6xl">
               We feel your pain
@@ -93,16 +93,14 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
           </aside>
         </div>
 
-        {/* mobile stack */}
         <div className="flex flex-1 flex-col lg:hidden">
           {items.map((item) => (
             <GridBackgroundCard key={item.title} {...item} />
           ))}
         </div>
 
-        {/* desktop viewport */}
         <div className="hidden lg:block lg:flex-1">
-          <div className="sticky top-32 h-[60vh] relative"> {/* совпадает со STEP_VH для плотности ⬅ */}
+          <div className="sticky top-45 h-[60vh] relative mb-55 mt-45">
             {items.map((s, i) => (
               <motion.div
                 key={s.title}
@@ -122,13 +120,12 @@ export default function Feature({ items = [] }: { items?: Array<Slide> }) {
             ))}
           </div>
 
-          {/* Сентинелы: уменьшили высоту шага с 90vh до 60vh ⬅ */}
           <div aria-hidden="true">
             {items.map((_, i) => (
               <div
                 key={`sentinel-${i}`}
                 ref={sentinels[i]}
-                style={{ height: `${STEP_VH}vh` }} // ⬅ было className="h-[90vh]"
+                style={{ height: `${STEP_VH}vh` }}
               />
             ))}
           </div>
