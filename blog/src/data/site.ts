@@ -15,12 +15,12 @@ export const hero = {
 };
 
 export const features = [
-  { title: "Setting up payments", image: `${PUBLIC_BASE_URL ?? ''}/Card1.png`, number: "1", mainText: "5+ hours on", subtitle: "webhooks", description: "& integrations", linkText: "Learn more" },
-  { title: "Setting up auth", image: `${PUBLIC_BASE_URL ?? ''}/Card2.png`, number: "2", mainText: "4+ hours on", subtitle: "email", description: "& Google OAuth", linkText: "Learn more" },
-  { title: "Configuring the database", image: `${PUBLIC_BASE_URL ?? ''}/Card3.png`, number: "3", mainText: "5+ hours on", subtitle: "env setup, migrations, access, safety", description: "check and more", linkText: "Learn more" },
-  { title: "Email sending setup", image: `${PUBLIC_BASE_URL ?? ''}/Card4.png`, number: "4", mainText: "4+ hours on", subtitle: "setting up DNS records", description: "& ESP (email sending provider) settings", linkText: "Learn more" },
-  { title: "Setting up analytics", image: `${PUBLIC_BASE_URL ?? ''}/Card5.png`, number: "5", mainText: "5+ hours on", subtitle: "Google Analytics: config", description: "& setup issues", linkText: "Learn more" },
-  { title: "And many more...", image: `${PUBLIC_BASE_URL ?? ''}/Card6.png`, number: "6", mainText: "SEO tags", subtitle: "Settings up cookies & cookies consent banner", description: "Configuration deployement", linkText: "Learn more" },
+  { title: "Setting up payments", image: `${PUBLIC_BASE_URL ?? ''}/Card1.svg`, number: "1", mainText: "5+ hours on", subtitle: "webhooks", description: "& integrations", linkText: "Learn more" },
+  { title: "Setting up auth", image: `${PUBLIC_BASE_URL ?? ''}/Card2.svg`, number: "2", mainText: "4+ hours on", subtitle: "email", description: "& Google OAuth", linkText: "Learn more" },
+  { title: "Configuring the database", image: `${PUBLIC_BASE_URL ?? ''}/Card3.svg`, number: "3", mainText: "5+ hours on", subtitle: "env setup, migrations, access, safety", description: "check and more", linkText: "Learn more" },
+  { title: "Email sending setup", image: `${PUBLIC_BASE_URL ?? ''}/Card4.svg`, number: "4", mainText: "4+ hours on", subtitle: "setting up DNS records", description: "& ESP (email sending provider) settings", linkText: "Learn more" },
+  { title: "Setting up analytics", image: `${PUBLIC_BASE_URL ?? ''}/Card5.svg`, number: "5", mainText: "5+ hours on", subtitle: "Google Analytics: config", description: "& setup issues", linkText: "Learn more" },
+  { title: "And many more...", image: `${PUBLIC_BASE_URL ?? ''}/Card6.svg`, number: "6", mainText: "SEO tags", subtitle: "Settings up cookies & cookies consent banner", description: "Configuration deployement", linkText: "Learn more" },
 ];
 
 export const faq = [
