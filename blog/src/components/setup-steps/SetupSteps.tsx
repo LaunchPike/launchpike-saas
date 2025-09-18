@@ -432,7 +432,7 @@ export default function SmoothScroll() {
             paddingRight={AXIS_PADDING_RIGHT}
             tickLargeWidth={4}
             tickSmallWidth={3}
-            height={200}
+            height={150}
             tickSmall={50}
             tickLarge={80}
             pxPerMinute={PX_PER_MINUTE}
