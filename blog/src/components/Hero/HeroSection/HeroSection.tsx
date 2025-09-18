@@ -25,7 +25,7 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
                 initial={{ opacity: 0, filter: "blur(10px)" }}
                 animate={{ opacity: 1, filter: "blur(0px)" }}
                 transition={reduce ? { duration: 0 } : { duration: animationDuration, ease: "easeOut" }}
-                className="absolute w-fit text-center top-20 left-[50%] translate-x-[-50%] lg:top-65 font-extrabold z-20 relative text-5xl lg:text-6xl"
+                className="absolute w-fit text-center top-30 left-[50%] translate-x-[-50%] lg:top-65 font-extrabold z-20 relative text-4xl lg:text-6xl"
             >
                 {title}
             </motion.h1>
@@ -34,10 +34,12 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
                     initial={{ opacity: 0, filter: "blur(12px)" }}
                     animate={{ opacity: 1, filter: "blur(0px)" }}
                     transition={reduce ? { duration: 0 } : { duration: animationDuration, ease: "easeOut", delay: animationDuration }}
-                    className="flex-1 border-white border-r h-fit lg:h-full flex flex-col items-center justify-center mt-30 lg:mt-20"
+                    className="flex-1 border-white border-r h-fit lg:h-full flex flex-col items-center justify-center mt-35 lg:mt-20"
                 >
-                    <span className="font-light text-[190px] lg:text-[400px] block h-min leading-50 lg:leading-96"
-                    >{compare.launchpike.time}
+                    <span
+                        className="font-light text-[140px] lg:text-[400px] block h-min leading-30 lg:leading-96"
+                    >
+                        {compare.launchpike.time}
                     </span>
                     <div>
                         <span className="font-extrabold text-6xl">in </span>
@@ -54,10 +56,10 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
                     initial={{ opacity: 0, filter: "blur(12px)" }}
                     animate={{ opacity: 1, filter: "blur(0px)" }}
                     transition={reduce ? { duration: 0 } : { duration: animationDuration, ease: "easeOut", delay: animationDuration }}
-                    className="flex-1 border-white border-l h-[1080px] flex flex-col items-center justify-center"
+                    className="flex-1 border-white border-l h-[1080px] flex flex-col items-center justify-center mt-10 lg:mt-0"
                 >
                     <HoverBoard />
-                    <div className="absolute flex flex-col items-center justify-center select-none ">
+                    <div className="absolute flex flex-col items-center justify-center select-none pointer-events-none">
                         <span className="font-light text-[190px] lg:text-[400px] leading-40 lg:leading-96"
                         >{compare.others.time}</span>
                         <div>

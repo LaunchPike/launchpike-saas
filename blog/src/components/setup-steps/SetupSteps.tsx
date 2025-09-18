@@ -68,26 +68,19 @@ export default function SmoothScroll() {
 
   function progressToXWithHolds(progress: number) {
     if (!anchors.length) return 0;
-
     const sections = anchors.length - 1;
     if (sections <= 0) return anchors[0];
-
     const START_HOLD = 0.08;
-    const END_HOLD   = 0.08;
-    const MID_HOLDS  = 0.16;
-
+    const END_HOLD = 0.08;
+    const MID_HOLDS = 0.16;
     const TOTAL_HOLDS = START_HOLD + END_HOLD + MID_HOLDS;
     const MOVE_FRACTION = Math.max(0, 1 - TOTAL_HOLDS);
-
     const movePerSection = MOVE_FRACTION / sections;
     const internalAnchors = Math.max(0, anchors.length - 2);
     const holdPerInternal = internalAnchors ? MID_HOLDS / internalAnchors : 0;
-
     let r = progress;
-
     if (r <= START_HOLD) return anchors[0];
     r -= START_HOLD;
-
     for (let i = 0; i < sections; i++) {
       if (r <= movePerSection) {
         const localP = r / movePerSection;
@@ -96,16 +89,13 @@ export default function SmoothScroll() {
         return anchors[i] + eased * (anchors[i + 1] - anchors[i]);
       }
       r -= movePerSection;
-
-      const isLastAnchor = (i + 1) === sections;
+      const isLastAnchor = i + 1 === sections;
       if (!isLastAnchor && holdPerInternal > 0) {
         if (r <= holdPerInternal) return anchors[i + 1];
         r -= holdPerInternal;
       }
     }
-
     if (r <= END_HOLD) return anchors[anchors.length - 1];
-
     return anchors[anchors.length - 1];
   }
 
@@ -116,29 +106,157 @@ export default function SmoothScroll() {
     return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
+  const virtualYRef = useRef(0);
+  const virtualXRef = useRef(0);
+  const scrollingRafRef = useRef<number | null>(null);
+  const animatingRef = useRef(false);
+  const edgeLockRef = useRef<"top" | "bottom" | null>(null);
+  const hoverRef = useRef(false);
+
+  useEffect(() => {
+    if (isMobile) return;
+    const node = containerRef.current;
+    if (!node) return;
+
+    const EDGE_ENTER = 0.02;
+    const EDGE_EXIT = 0.06;
+
+    const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+    const updateTargetsFromWindow = () => {
+      virtualYRef.current = window.scrollY || window.pageYOffset;
+      virtualXRef.current = window.scrollX || window.pageXOffset;
+    };
+    updateTargetsFromWindow();
+
+    const animate = () => {
+      const maxY = (document.scrollingElement?.scrollHeight || document.body.scrollHeight) - window.innerHeight;
+      const maxX = (document.scrollingElement?.scrollWidth || document.body.scrollWidth) - window.innerWidth;
+      const curY = window.scrollY || window.pageYOffset;
+      const curX = window.scrollX || window.pageXOffset;
+      const tgtY = clamp(virtualYRef.current, 0, Math.max(0, maxY));
+      const tgtX = clamp(virtualXRef.current, 0, Math.max(0, maxX));
+      const nextY = curY + (tgtY - curY) * 0.35;
+      const nextX = curX + (tgtX - curX) * 0.35;
+      window.scrollTo(nextX, nextY);
+      const vy = Math.abs(tgtY - nextY);
+      const vx = Math.abs(tgtX - nextX);
+      if (vy < 0.5 && vx < 0.5) {
+        animatingRef.current = false;
+        scrollingRafRef.current = null;
+        return;
+      }
+      scrollingRafRef.current = requestAnimationFrame(animate);
+    };
+
+    const getProgress = () => {
+      const rect = node.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const containerHeight = node.offsetHeight;
+      const startPoint = windowHeight;
+      const endPoint = -containerHeight;
+      const totalDistance = startPoint - endPoint;
+      const currentPosition = rect.top;
+      return Math.max(0, Math.min(1, (startPoint - currentPosition) / totalDistance));
+    };
+
+    const onEnter = () => {
+      hoverRef.current = true;
+    };
+    const onLeave = () => {
+      hoverRef.current = false;
+      edgeLockRef.current = null;
+      if (animatingRef.current && scrollingRafRef.current) {
+        cancelAnimationFrame(scrollingRafRef.current);
+        scrollingRafRef.current = null;
+        animatingRef.current = false;
+      }
+      updateTargetsFromWindow();
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (!hoverRef.current) return;
+      const rect = node.getBoundingClientRect();
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) return;
+
+      const progress = getProgress();
+
+      if (edgeLockRef.current === "top") {
+        if (progress > EDGE_EXIT || e.deltaY > 0) edgeLockRef.current = null;
+        else return;
+      } else if (edgeLockRef.current === "bottom") {
+        if (progress < 1 - EDGE_EXIT || e.deltaY < 0) edgeLockRef.current = null;
+        else return;
+      }
+
+      if (progress < EDGE_ENTER && e.deltaY < 0) {
+        edgeLockRef.current = "top";
+        if (animatingRef.current && scrollingRafRef.current) {
+          cancelAnimationFrame(scrollingRafRef.current);
+          scrollingRafRef.current = null;
+          animatingRef.current = false;
+        }
+        return;
+      }
+      if (progress > 1 - EDGE_ENTER && e.deltaY > 0) {
+        edgeLockRef.current = "bottom";
+        if (animatingRef.current && scrollingRafRef.current) {
+          cancelAnimationFrame(scrollingRafRef.current);
+          scrollingRafRef.current = null;
+          animatingRef.current = false;
+        }
+        return;
+      }
+
+      e.preventDefault();
+      const scale = 0.45;
+      virtualYRef.current += e.deltaY * scale;
+      virtualXRef.current += e.deltaX * scale;
+      if (!animatingRef.current) {
+        animatingRef.current = true;
+        scrollingRafRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    const onScrollSync = () => {
+      if (!animatingRef.current) updateTargetsFromWindow();
+    };
+
+    node.addEventListener("mouseenter", onEnter);
+    node.addEventListener("mouseleave", onLeave);
+    node.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("scroll", onScrollSync, { passive: true });
+
+    return () => {
+      node.removeEventListener("mouseenter", onEnter);
+      node.removeEventListener("mouseleave", onLeave);
+      node.removeEventListener("wheel", onWheel as EventListener);
+      window.removeEventListener("scroll", onScrollSync as EventListener);
+      if (scrollingRafRef.current) cancelAnimationFrame(scrollingRafRef.current);
+      scrollingRafRef.current = null;
+      animatingRef.current = false;
+      edgeLockRef.current = null;
+      hoverRef.current = false;
+    };
+  }, [isMobile]);
+
   useEffect(() => {
     if (!isMobile) return;
-
     const handleMobileScroll = () => {
       const viewportHeight = window.innerHeight;
       const centerY = viewportHeight / 2;
       const next = new Set<number>();
-
       for (let i = 1; i <= 10; i++) {
         const el = document.querySelector(`[data-mobile-slide="${i}"]`) as HTMLElement | null;
         if (!el) continue;
-
         const rect = el.getBoundingClientRect();
         const slideCenter = rect.top + rect.height / 2;
         const threshold = viewportHeight * 0.25;
         const isInCenter = slideCenter >= centerY - threshold && slideCenter <= centerY + threshold;
         const coversCenter = rect.top <= centerY && rect.bottom >= centerY;
-
         if (isInCenter || coversCenter) next.add(i);
       }
       setActiveSlides(next);
     };
-
     window.addEventListener("scroll", handleMobileScroll, { passive: true });
     window.addEventListener("resize", handleMobileScroll, { passive: true });
     const t = setTimeout(handleMobileScroll, 200);
@@ -154,28 +272,27 @@ export default function SmoothScroll() {
 
     const updateFromProgress = (p: number) => {
       const knobX = progressToXWithHolds(p);
-
       const viewportCenterOffset = window.innerWidth * 0.4;
       const startPosition = viewportCenterOffset;
       const endPosition = -(TIMELINE_WIDTH - window.innerWidth * 0.8) - viewportCenterOffset;
-
       const fullSpan = anchors[anchors.length - 1] - anchors[0] || 1;
       const t = (knobX - anchors[0]) / fullSpan;
       const currentTranslate = startPosition + t * (endPosition - startPosition);
       setTranslateX(currentTranslate);
-
       const last = anchors.length - 1;
       let activeIdx = 0;
       if (knobX >= anchors[last]) {
         activeIdx = last;
       } else {
         for (let i = 0; i < last; i++) {
-          if (knobX >= anchors[i] && knobX < anchors[i + 1]) { activeIdx = i; break; }
+          if (knobX >= anchors[i] && knobX < anchors[i + 1]) {
+            activeIdx = i;
+            break;
+          }
         }
       }
       const newActive = activeIdx + 1;
       if (newActive !== activeSlide) setActiveSlide(newActive);
-
       const segIdx = Math.min(activeIdx, last - 1);
       const segStart = anchors[segIdx];
       const segEnd = anchors[segIdx + 1];
@@ -188,55 +305,43 @@ export default function SmoothScroll() {
     const startRAF = () => {
       if (rafRef.current != null) return;
       const SPEED = 6;
-
       const tick = (ts: number) => {
         if (!lastTsRef.current) lastTsRef.current = ts;
         const dt = Math.min(0.05, (ts - lastTsRef.current) / 1000);
         lastTsRef.current = ts;
-
         const rate = 1 - Math.exp(-SPEED * dt);
-
         const cur = smoothProgressRef.current;
         const tgt = targetProgressRef.current;
         const next = cur + (tgt - cur) * rate;
-
         smoothProgressRef.current = next;
         updateFromProgress(next);
-
         if (Math.abs(tgt - next) > 0.0005) {
           rafRef.current = requestAnimationFrame(tick);
         } else {
           rafRef.current = null;
         }
       };
-
       rafRef.current = requestAnimationFrame(tick);
     };
 
     const handleScroll = () => {
       if (!containerRef.current) return;
-
       const rect = containerRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
       const containerHeight = containerRef.current.offsetHeight;
-
       const startPoint = windowHeight;
       const endPoint = -containerHeight;
       const totalDistance = startPoint - endPoint;
       const currentPosition = rect.top;
-
       const rawProgress = Math.max(0, Math.min(1, (startPoint - currentPosition) / totalDistance));
-
       const globalPauseStart = 0.15;
       const globalMovePhase = 0.70;
-
       let movedProgress = 0;
       if (rawProgress <= globalPauseStart) movedProgress = 0;
       else if (rawProgress < globalPauseStart + globalMovePhase) {
         const p = (rawProgress - globalPauseStart) / globalMovePhase;
         movedProgress = Math.max(0, Math.min(1, p));
       } else movedProgress = 1;
-
       targetProgressRef.current = movedProgress;
       startRAF();
     };
@@ -260,9 +365,8 @@ export default function SmoothScroll() {
             With LaunchPike, you're getting a plug-n-play MVP boilerplate + step-by-step guide so you can go live today. Here's what you can do in 90 mins or less:
           </p>
         </div>
-
         <div className="mobile-slides-list">
-          {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
             <div key={n} className="mobile-slide-item" data-mobile-slide={n}>
               <SlideCard slideNumber={n} isActive={activeSlides.has(n)} isMobile />
             </div>
@@ -282,26 +386,24 @@ export default function SmoothScroll() {
         <article className="text-3xl lg:hidden px-6 py-6 text-justify">
           With LaunchPike, you're getting a plug-n-play MVP boilerplate + step-by-step guide so you can go live today. Here's what you can do in 90 mins or less:
         </article>
-
         <div
           ref={slidesContainerRef}
           className="slides-container"
           data-slides-container
           style={{
             transform: `translateX(${translateX}px)`,
-            width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT
+            width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT,
           }}
         >
           <div
             className="slides"
             style={{ width: TIMELINE_WIDTH + AXIS_PADDING_LEFT + AXIS_PADDING_RIGHT }}
           >
-            {[1,2,3,4,5,6,7,8,9,10].map((n) => {
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => {
               const leftPx = n === 1 ? 0 : slideLeftPosition(n);
-              const viewX  = translateX + leftPx;
+              const viewX = translateX + leftPx;
               const shouldStick = n <= activeSlide;
               const stickyOffset = shouldStick ? Math.max(0, PIN_LEFT - viewX) : 0;
-
               return (
                 <div
                   key={n}
@@ -309,7 +411,7 @@ export default function SmoothScroll() {
                   style={{
                     left: leftPx,
                     transform: `translateX(${stickyOffset}px)`,
-                    zIndex: n === activeSlide ? 3 : (n < activeSlide ? 2 : 1),
+                    zIndex: n === activeSlide ? 3 : n < activeSlide ? 2 : 1,
                     pointerEvents: n === activeSlide ? "auto" : "none",
                   }}
                 >
@@ -318,11 +420,9 @@ export default function SmoothScroll() {
               );
             })}
           </div>
-
           <div className="progress-bar" ref={progressTrackRef} data-progress-bar>
             <div className="progress-fill" ref={progressFillRef} />
           </div>
-
           <TimelineAxis
             ref={axisRef}
             className="hidden lg:flex timeline-axis"

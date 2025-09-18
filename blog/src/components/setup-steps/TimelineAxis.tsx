@@ -1,9 +1,4 @@
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-} from "react";
+import React, { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 
 export type TimelineAxisHandle = {
   minuteToX: (minute: number) => number;
@@ -22,9 +17,9 @@ type Props = {
   className?: string;
   style?: React.CSSProperties;
   pxPerMinute: number;
-  tickLargeWidth: number
+  tickLargeWidth: number;
   tickSmallWidth: number;
-  fontSize: number
+  fontSize: number;
 };
 
 const TimelineAxis = forwardRef<TimelineAxisHandle, Props>(
@@ -42,7 +37,7 @@ const TimelineAxis = forwardRef<TimelineAxisHandle, Props>(
       pxPerMinute,
       tickLargeWidth = 4,
       tickSmallWidth = 3,
-      fontSize = 25
+      fontSize = 25,
     },
     ref
   ) => {
@@ -54,8 +49,8 @@ const TimelineAxis = forwardRef<TimelineAxisHandle, Props>(
     const ticks = useMemo(() => {
       const arr: { minute: number; x: number; major: boolean }[] = [];
       for (let minute = 0; minute <= totalMinutes; minute++) {
-        const x = paddingLeft + (minute * pxPerMinute);
-        const major = labelEvery > 0 && (minute % labelEvery === 0);
+        const x = paddingLeft + minute * pxPerMinute;
+        const major = labelEvery > 0 && minute % labelEvery === 0;
         arr.push({ minute, x, major });
       }
       return arr;
@@ -77,7 +72,7 @@ const TimelineAxis = forwardRef<TimelineAxisHandle, Props>(
     );
 
     const calcXAndX1ForFirstAndLastLine = (x: number, index: number) =>
-      index === 0 ? x + tickLargeWidth : index === ticks.length - 1 ? x - tickLargeWidth : x
+      index === 0 ? x + tickLargeWidth : index === ticks.length - 1 ? x - tickLargeWidth : x;
 
     return (
       <div
@@ -85,17 +80,12 @@ const TimelineAxis = forwardRef<TimelineAxisHandle, Props>(
         className={className}
         style={{
           width: totalWidth,
-          ...style
+          ...style,
         }}
       >
-        <svg
-          width={totalWidth}
-          height={height}
-          viewBox={`0 0 ${totalWidth} ${height}`}
-        >
+        <svg width={totalWidth} height={height} viewBox={`0 0 ${totalWidth} ${height}`}>
           {ticks.map(({ minute, x, major }, index) => (
             <g key={minute}>
-              {/* Полоска вниз от линии */}
               <line
                 x1={calcXAndX1ForFirstAndLastLine(x, index)}
                 x2={calcXAndX1ForFirstAndLastLine(x, index)}
@@ -104,7 +94,6 @@ const TimelineAxis = forwardRef<TimelineAxisHandle, Props>(
                 stroke="#333"
                 strokeWidth={major ? tickLargeWidth : tickSmallWidth}
               />
-
               {major && (
                 <text
                   x={ticks.length - 1 === index ? x - 40 : x}
