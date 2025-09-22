@@ -1,0 +1,30 @@
+---
+interface Props {
+  headings: Array<{ depth: number; slug: string; text: string }>;
+}
+const { headings } = Astro.props;
+
+// оставим только h2–h3
+const items = headings.filter(h => h.depth === 2 || h.depth === 3);
+---
+
+<style>
+  .toc { font-size:14px; }
+  .toc h5 { margin: 6px 0 10px; font-size:12px; text-transform:uppercase; color:#6b7280; letter-spacing:.06em; }
+  .toc ul { list-style:none; padding:0; margin:0; }
+  .toc a { display:block; padding:4px 6px; margin-left: calc((var(--lvl,2) - 2) * 12px);
+           color:#374151; text-decoration:none; border-radius:6px; }
+  .toc a:hover { background:#f3f4f6; }
+  .toc a.active { color:#111827; font-weight:600; background:#eef2ff; }
+</style>
+
+<div class="toc" data-toc>
+  <h5>On this page</h5>
+  <ul>
+    {items.map((h) => (
+      <li>
+        <a style={`--lvl:${h.depth}`} href={`#${h.slug}`}>{h.text}</a>
+      </li>
+    ))}
+  </ul>
+</div>

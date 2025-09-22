@@ -35,17 +35,17 @@ const Footer = () => {
                 <ul className="flex flex-col gap-3 w-fit">
                     <h3 className="font-bold">Company</h3>
                     <li>
-                        <a href="">
-                            Features
+                        <a href="/docs">
+                            Docs
                         </a>
                     </li>
                     <li>
-                        <a href="">
+                        <a href="#faq">
                             FAQ
                         </a>
                     </li>
                     <li>
-                        <a href="">
+                        <a href="/blog">
                             Blog
                         </a>
                     </li>

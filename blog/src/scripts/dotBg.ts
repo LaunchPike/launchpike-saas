@@ -1,26 +1,17 @@
-// src/utils/dotBg.ts
 export type DotBgOptions = {
-  /** Цвет квадратика */
   dotColor?: string;
-  /** Цвет фона SVG (обычно transparent) */
   bgColor?: string;
-  /** Сторона квадратика в px */
   dotSize?: number;
-  /** Горизонтальный шаг (px) */
   gapX?: number;
-  /** Вертикальный шаг (px) */
   gapY?: number;
-  /** Общая непрозрачность SVG (0..1) */
-  opacity?: number;
-  /** Скругление углов квадратика (px), 0 = строго квадрат */
-  radius?: number;
+  opacity?: number;  radius?: number;
 };
 
 export function dotBgDataUrl({
   dotColor = "rgba(0,0,0,0.18)",
   bgColor = "transparent",
-  dotSize = 3,          // размер квадратика
-  gapX = 70,            // шаг по умолчанию 70×70
+  dotSize = 3,
+  gapX = 70,
   gapY = 70,
   opacity = 1,
   radius = 0,
@@ -29,7 +20,6 @@ export function dotBgDataUrl({
   const h = Math.max(1, Math.round(gapY));
   const s = Math.max(1, Math.round(dotSize));
 
-  // центрируем квадратик в тайле и привязываем к целым пикселям
   const x = Math.round(w / 2 - s / 2);
   const y = Math.round(h / 2 - s / 2);
 
@@ -49,7 +39,5 @@ export function dotBgStyle(opts?: DotBgOptions): React.CSSProperties {
   return {
     backgroundImage: `url("${url}")`,
     backgroundRepeat: "repeat",
-    // при желании можно зафиксировать background-size:
-    // backgroundSize: `${Math.round(opts?.gapX ?? 70)}px ${Math.round(opts?.gapY ?? 70)}px`,
   };
 }

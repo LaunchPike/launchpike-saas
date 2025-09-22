@@ -25,7 +25,7 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
                 initial={{ opacity: 0, filter: "blur(10px)" }}
                 animate={{ opacity: 1, filter: "blur(0px)" }}
                 transition={reduce ? { duration: 0 } : { duration: animationDuration, ease: "easeOut" }}
-                className="absolute w-fit text-center top-30 left-[50%] translate-x-[-50%] lg:top-65 font-extrabold z-20 relative text-4xl lg:text-6xl"
+                className="absolute w-fit text-center top-30 left-[50%] translate-x-[-50%] lg:top-65 font-extrabold z-20 relative text-4xl lg:text-6xl select-none pointer-events-none"
             >
                 {title}
             </motion.h1>
@@ -34,7 +34,7 @@ export default function HeroSection({ title, compare }: HeroSectionProps) {
                     initial={{ opacity: 0, filter: "blur(12px)" }}
                     animate={{ opacity: 1, filter: "blur(0px)" }}
                     transition={reduce ? { duration: 0 } : { duration: animationDuration, ease: "easeOut", delay: animationDuration }}
-                    className="flex-1 border-white border-r h-fit lg:h-full flex flex-col items-center justify-center mt-35 lg:mt-20"
+                    className="flex-1 h-fit lg:h-full flex flex-col items-center justify-center mt-35 lg:mt-20"
                 >
                     <span
                         className="font-light text-[140px] lg:text-[400px] block h-min leading-30 lg:leading-96"

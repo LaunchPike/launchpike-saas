@@ -1,0 +1,36 @@
+---
+import QuickMenu from "../../components/QuickMenu";
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { getCollection } from "astro:content";
+import "./documentation.css";
+import Footer from "../../components/Footer.astro";
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const all = (await getCollection("docs")).filter((e) => !e.data.draft);
+
+  all.sort((a, b) => {
+    const ga = a.data?.group ?? "General";
+    const gb = b.data?.group ?? "General";
+    if (ga !== gb) return ga.localeCompare(gb);
+    return (a.data?.order ?? 0) - (b.data?.order ?? 0);
+  });
+
+  return all.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry, all },
+  }));
+}
+
+const { entry, all } = Astro.props;
+const { Content, headings } = await entry.render(); 
+---
+
+<div class="document-wrapper">
+  <QuickMenu mode="document" client:load />
+  <DocsLayout {all} {entry} {headings}>
+    <Content />
+  </DocsLayout>
+  <Footer />
+</div>
