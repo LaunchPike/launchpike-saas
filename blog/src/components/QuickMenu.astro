@@ -1,5 +1,6 @@
 ---
 import QuickMenuComponent from "./QuickMenu.jsx";
+const { mode } = Astro.props;
 ---
 
-<QuickMenuComponent client:load />
+<QuickMenuComponent client:load mode={mode} />

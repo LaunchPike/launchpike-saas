@@ -1,0 +1,98 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+    groups: Record<string, CollectionEntry<"docs">[]>;
+    activeSlug: string;
+}
+const { groups, activeSlug } = Astro.props;
+
+const shouldOpen = (items: CollectionEntry<"docs">[]) =>
+    items.some((e) => e.slug === activeSlug);
+---
+
+<style>
+    summary {
+        list-style: none;
+    }
+    summary::-webkit-details-marker {
+        display: none;
+    }
+    .summary {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 8px 4px;
+        cursor: pointer;
+        user-select: none;
+        color: #111827;
+        font-weight: 700;
+    }
+
+    .chev {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        opacity: 0.7;
+        transition: transform 0.2s ease;
+    }
+    details[open] .chev {
+        transform: rotate(180deg);
+    }
+
+    .list {
+        margin: 2px 0 10px 10px;
+        padding-left: 10px;
+        border-left: 2px solid #e5e7eb;
+    }
+    .item a {
+        display: block;
+        margin: 4px 0;
+        padding: 6px 8px;
+        border-radius: 8px;
+        color: #111827;
+        text-decoration: none;
+    }
+    .item a:hover {
+        background: #f3f4f6;
+    }
+    .item a.active {
+        background: #eef2ff;
+        color: #3730a3;
+        font-weight: 600;
+    }
+</style>
+
+<nav aria-label="Documentation" id="data-sidebar">
+    {
+        Object.entries(groups).map(([group, items]) => (
+            <details class="group" open={shouldOpen(items)}>
+                <summary class="summary">
+                    <svg class="chev" viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M8 10l4 4 4-4"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                    <span class="muted">{group}</span>
+                </summary>
+
+                <ul class="list">
+                    {items.map((e) => (
+                        <li class="item">
+                            <a
+                                href={`/docs/${e.slug}/`}
+                                class={e.slug === activeSlug ? "active" : ""}
+                            >
+                                {e.data.title}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </details>
+        ))
+    }
+</nav>

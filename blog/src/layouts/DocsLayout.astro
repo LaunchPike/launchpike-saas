@@ -1,0 +1,119 @@
+---
+import Sidebar from "../components/Sidebar.astro";
+import Toc from "../components/Toc.astro";
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || "";
+import type { CollectionEntry } from "astro:content";
+import "../styles/global.css";
+import "../styles/landing.css";
+
+import "../styles/docs.css";
+
+interface Props {
+    all: CollectionEntry<"docs">[];
+    entry: CollectionEntry<"docs">;
+    headings: Array<{ depth: number; slug: string; text: string }>;
+}
+
+const { all, entry, headings } = Astro.props;
+
+const idx = all.findIndex((e) => e.slug === entry.slug);
+const prev = idx > 0 ? all[idx - 1] : undefined;
+const next = idx >= 0 && idx < all.length - 1 ? all[idx + 1] : undefined;
+
+const groups = all.reduce(
+    (acc, e) => {
+        const g = e.data?.group ?? "General";
+        (acc[g] ||= []).push(e);
+        return acc;
+    },
+    {} as Record<string, CollectionEntry<"docs">[]>,
+);
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>{entry.data.title} — Docs</title>
+        <link rel="icon" href={`${PUBLIC_BASE_URL}/favicon.svg`} />
+    </head>
+    <body>
+        <div class="flex">
+            <aside class="hidden left lg:flex flex-1" id="data-sidebar">
+                <Sidebar {groups} activeSlug={entry.slug} />
+            </aside>
+
+            <main class="flex center flex-2">
+                <article class="content">
+                    <slot />
+                    <footer class="pager " aria-label="Page navigation">
+                        {
+                            prev && (
+                                <a
+                                    class="pager__btn pager__prev"
+                                    href={`/docs/${prev.slug}/`}
+                                    rel="prev"
+                                >
+                                    <span aria-hidden="true">←</span>
+                                    <span class="pager__label">
+                                        <small>Previous</small>
+                                        {prev.data.title}
+                                    </span>
+                                </a>
+                            )
+                        }
+                        <div class="pager__spacer"></div>
+                        {
+                            next && (
+                                <a
+                                    class="pager__btn pager__next"
+                                    href={`/docs/${next.slug}/`}
+                                    rel="next"
+                                >
+                                    <span class="pager__label">
+                                        <small>Next</small>
+                                        {next.data.title}
+                                    </span>
+                                    <span aria-hidden="true">→</span>
+                                </a>
+                            )
+                        }
+                    </footer>
+                </article>
+            </main>
+
+            <aside class="flex right flex-1">
+                <Toc headings={headings} />
+            </aside>
+        </div>
+        <script is:inline>
+            const links = Array.from(
+                document.querySelectorAll('[data-toc] a[href^="#"]'),
+            );
+            const map = new Map(
+                links.map((a) => [
+                    decodeURIComponent(a.getAttribute("href") || "").slice(1),
+                    a,
+                ]),
+            );
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((e) => {
+                        const id = e.target.id;
+                        const a = map.get(id);
+                        if (!a) return;
+                        if (e.isIntersecting) {
+                            links.forEach((x) => x.classList.remove("active"));
+                            a.classList.add("active");
+                        }
+                    });
+                },
+                { rootMargin: "0px 0px -70% 0px", threshold: 1e-6 },
+            );
+
+            document
+                .querySelectorAll("h2[id], h3[id]")
+                .forEach((h) => observer.observe(h));
+        </script>
+    </body>
+</html>
