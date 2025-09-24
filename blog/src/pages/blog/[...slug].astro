@@ -1,0 +1,110 @@
+---
+import { getCollection } from "astro:content";
+import LandingLayout from "../../layouts/LandingLayout.astro";
+import { dotBgStyle } from "../../scripts/dotBg";
+import "./blog.css";
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+    const all = (await getCollection("blog")).filter((p) => !p.data.draft);
+    all.sort(
+        (a, b) =>
+            new Date(a.data.date).getTime() - new Date(b.data.date).getTime(),
+    );
+    return all.map((entry, i) => ({
+        params: { slug: entry.slug },
+        props: { entry, all, i },
+    }));
+}
+
+const { entry, all, i } = Astro.props;
+const { Content, headings } = await entry.render();
+const prev = i > 0 ? all[i - 1] : undefined;
+const next = i < all.length - 1 ? all[i + 1] : undefined;
+---
+
+<LandingLayout
+    title="Launchpike"
+    description="Plan, validate, and ship product launches with fewer surprises."
+    style={dotBgStyle({
+        gapX: 69,
+        gapY: 69,
+        dotColor: "rgba(0,0,0,0.5)",
+        bgColor: "transparent",
+    })}
+>
+    <section class="flex pt-18">
+        <nav class="flex-1">
+            <a
+                class="backlink"
+                href="/blog"
+                onclick="if (history.length > 1) { history.back(); return false; }"
+            >
+                <svg
+                    class="backlink__icon"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M15 19l-7-7 7-7"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                </svg>
+                Back
+            </a>
+        </nav>
+        <article class="flex-2">
+            <div class="flex flex-col pb-12">
+                {entry.data.cover && <img src={entry.data.cover} alt="" />}
+                <h1>{entry.data.title}</h1>
+                <div class="flex w-full align-center justify-between">
+                    {
+                        (entry.data.tags ?? []).length > 0 && (
+                            <div class="chips gap-2">
+                                {entry.data.tags.map((t) => (
+                                    <span class="chip">{t}</span>
+                                ))}
+                            </div>
+                        )
+                    }
+                    <div class="meta leading-9">
+                        {new Date(entry.data.date).toLocaleDateString()}
+                    </div>
+                </div>
+            </div>
+            <div class="w-full">
+                <Content />
+            </div>
+        </article>
+        <nav class="flex-1"></nav>
+    </section>
+</LandingLayout>
+<script is:inline>
+    const links = Array.from(
+        document.querySelectorAll('[data-toc] a[href^="#"]'),
+    );
+    const map = new Map(
+        links.map((a) => [
+            decodeURIComponent(a.getAttribute("href") || "").slice(1),
+            a,
+        ]),
+    );
+    const obs = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((e) => {
+                const a = map.get(e.target.id);
+                if (!a) return;
+                if (e.isIntersecting) {
+                    links.forEach((x) => x.classList.remove("active"));
+                    a.classList.add("active");
+                }
+            });
+        },
+        { rootMargin: "0px 0px -70% 0px", threshold: 1e-6 },
+    );
+    document.querySelectorAll("h2[id], h3[id]").forEach((h) => obs.observe(h));
+</script>

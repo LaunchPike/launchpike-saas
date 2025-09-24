@@ -11,7 +11,7 @@ export default function QuickMenuComponent({ mode = "default" }) {
   const switchOpen = () => {
     setOpen(!open)
   }
-  
+
   useEffect(() => {
     if (window.innerWidth <= 768) {
       const dataSidebar = document.querySelector("#data-sidebar")
@@ -86,28 +86,15 @@ export default function QuickMenuComponent({ mode = "default" }) {
             <div class="liquidGlass-effect"></div>
             <div class="liquidGlass-tint"></div>
             <div class="liquidGlass-shine"></div>
-            <div class="liquidGlass-text flex flex-row items-center  gap-[200px] py-2.5 px-4 w-fit">
+            <div class="liquidGlass-text flex flex-row items-center  gap-[200px] py-2.5 px-4 w-full">
               <div className="flex flex-row gap-4 justify-between items-center">
-                <li className="hidden lg:flex">
-                  <a href="">
-                    <Image className="h-[20px] w-[20px]" src="telegram-grey-icon.png" alt="launchpike telegram" />
-                  </a>
-                </li>
-                <li>
-                  <a href="">
-                    <Image className="h-[20px] w-[20px]" src="github-icon.png" alt="launchpike github" />
-                  </a>
-                </li>
-                <li>
-                  <a href="">
-                    <Image className="h-[20px] w-[20px]" src="x-icon.png" alt="launchpike X" />
-                  </a>
-                </li>
-                <li>
-                  <a href="">
-                    <Image className="h-[20px] w-[20px]" src="discord-icon.png" alt="launchpike discord" />
-                  </a>
-                </li>
+                <a href="/">
+                  <img className="hidden lg:flex" src={`${PUBLIC_BASE_URL}/logo.png`} alt="Launchpike" />
+                  <img className="flex lg:hidden w-[40px]" src={`${PUBLIC_BASE_URL}/Logo.png`} alt="Launchpike" />
+                </a>
+                <a href="/docs">Docs</a>
+                <a href="/#faq">FAQ</a>
+                <a href="/blog">Blog</a>
               </div>
               <div className="flex flex-row gap-4 justify-between items-center">
                 <a
