@@ -6,7 +6,9 @@ const Footer = () => {
         <footer className="lg:h-[400px] w-full flex flex-col lg:flex-row gap-6 lg:gap-4 items-start justify-center px-5 py-15 lg:px-40 lg:py-30">
             <div className="flex-1">
                 <div className="w-full">
-                    <Image src={`logo.png`} alt="" />
+                    <a href="/">
+                        <Image src={`logo.png`} alt="" />
+                    </a>
                 </div>
                 <ul className="flex gap-12 py-6">
                     <li>
