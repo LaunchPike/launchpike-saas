@@ -150,7 +150,8 @@ article img {
     width: 100%;
     height: auto;
     max-height: 600px;
-    border-radius: 14px;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
     display: block;
     margin: 0 0 16px;
 }
