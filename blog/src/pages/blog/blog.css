@@ -1,0 +1,373 @@
+body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, Inter, Arial
+}
+
+.wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 .25rem
+}
+
+.lede {
+    color: #6b7280;
+    margin: 0 0 1rem
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem 8px;
+    margin: 8px 0 16px
+}
+
+.search {
+    flex: 1 1 260px;
+    max-width: 460px;
+}
+
+.search input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px
+}
+
+.tag {
+    font-size: .75rem;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    color: #3B82F6;
+    border: 1px #3B82F6 solid;
+}
+
+.tag.active {
+    background: #e0e7ff;
+    color: #3730a3;
+    font-weight: 600
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px
+}
+
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.card {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff
+}
+
+.thumb {
+    aspect-ratio: 16/9;
+    background: #0f172a;
+    display: block;
+    object-fit: cover;
+    width: 100%
+}
+
+.card-body {
+    padding: 12px 14px 16px
+}
+
+.date {
+    font-size: .75rem;
+    color: #6b7280
+}
+
+.card h3 {
+    margin: 6px 0 6px;
+    font-size: 1rem
+}
+
+.card p {
+    margin: 0 0 8px;
+    color: #374151
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ====== Layout ====== */
+body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, "Helvetica Neue", Arial;
+    color: #111827;
+    background: #fff;
+}
+
+.shell {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+@media (max-width: 1024px) {
+    .shell {
+        grid-template-columns: 1fr;
+    }
+
+    .toc {
+        display: none;
+    }
+}
+
+/* ====== Article ====== */
+article img {
+    width: 100%;
+    height: auto;
+    max-height: 600px;
+    border-radius: 14px;
+    display: block;
+    margin: 0 0 16px;
+}
+
+article h1 {
+    font-size: 2rem;
+    line-height: 1.15;
+    font-weight: 800;
+    margin: .25rem 0 .5rem;
+}
+
+.meta {
+    color: #6b7280;
+    font-size: .9rem;
+}
+
+article p {
+    line-height: 1.75;
+    margin: 0 0 1rem;
+}
+
+article h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 2rem 0 .75rem;
+}
+
+article h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 1.25rem 0 .5rem;
+}
+
+article a {
+    color: #2563eb;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+article ul {
+    padding-left: 1.1rem;
+    margin: .5rem 0 1.25rem;
+}
+
+article li {
+    margin: .35rem 0;
+}
+
+/* Callout */
+article blockquote {
+    margin: 1.25rem 0;
+    padding: .9rem 1rem;
+    background: #f8fbff;
+    border-left: 4px solid #3b82f6;
+    border-radius: .5rem;
+    color: #0f172a;
+}
+
+article blockquote p {
+    margin: .4rem 0;
+}
+
+/* Codebox (совместимо с твоим оформлением из docs) */
+.codebox {
+    margin: 1.25rem 0 1.75rem;
+    border-radius: .75rem;
+    overflow: hidden;
+    background: #0f172a;
+    border: 1px solid #111827;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .04), 0 8px 24px rgba(2, 6, 23, .18);
+}
+
+.codebox__cap {
+    font-size: .75rem;
+    text-transform: lowercase;
+    letter-spacing: .02em;
+    color: #cbd5e1;
+    text-align: center;
+    background: #111827;
+    padding: .45rem .75rem;
+    border-bottom: 1px solid #0b1220;
+}
+
+.codebox pre {
+    margin: 0;
+    padding: 1rem 1.25rem;
+    overflow: auto;
+}
+
+.codebox code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: .9rem;
+    color: #c0e0ff;
+    display: block;
+    white-space: pre;
+}
+
+/* Tags (chips) */
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.chip {
+    font-size: .75rem;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    color: #3B82F6;
+    border: 1px #3B82F6 solid;
+    height: fit-content;
+}
+
+/* Pager */
+.pager {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+.pager a {
+    flex: 1;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: #111827;
+}
+
+.pager a:hover {
+    background: #f9fafb;
+}
+
+/* ====== Right TOC ====== */
+.toc {
+    position: sticky;
+    top: 16px;
+    height: calc(100vh - 32px);
+    border-left: 1px solid #e5e7eb;
+    padding-left: 16px;
+}
+
+.toc h5 {
+    margin: 4px 0 8px;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-size: .72rem;
+    letter-spacing: .06em;
+}
+
+.toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.toc a {
+    display: block;
+    padding: 4px 6px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #374151;
+}
+
+.toc a:hover {
+    background: #f3f4f6;
+}
+
+.toc a.active {
+    background: #eef2ff;
+    color: #111827;
+    font-weight: 600;
+}
+
+.img-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 8px 0 0;
+}
+
+.img-row img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+}
+
+/* на мобилках — по одному в столбик */
+@media (max-width:640px) {
+    .img-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.backlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #3B82F6;
+    /* синий как на макете */
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 4px 6px;
+    border-radius: 10px;
+    margin: 4px 0 12px;
+}
+
+.backlink:hover {
+    background: #EFF6FF;
+}
+
+.backlink__icon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    color: #3B82F6;
+}
