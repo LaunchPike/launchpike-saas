@@ -6,19 +6,19 @@ app LaunchPike {
   title: "LaunchPike - OpenSaaS Template",
 
   head: [
-    "<link rel='icon' href='/favicon.ico' />",
+    "<link rel='icon' href='/favicon.svg' />",
     "<meta charset='utf-8' />",
-    "<meta name='description' content='Full-featured OpenSaaS template with ready-made solutions for authentication, payments, analytics, and deployment.' />",
+    "<meta name='description' content='Your next startup doesn’t need a giant dev team. Get auth, billing, and database out of the box and a live MVP the same day.' />",
     "<meta name='author' content='LaunchPike' />",
     "<meta name='keywords' content='saas, opensaas, template, wasp, react, nodejs, prisma, stripe, analytics' />",
     
     "<meta property='og:type' content='website' />",
     "<meta property='og:title' content='LaunchPike - OpenSaaS Template' />",
     "<meta property='og:site_name' content='LaunchPike' />",
-    "<meta property='og:url' content='https://launchpike.com' />",
-    "<meta property='og:description' content='Full-featured OpenSaaS template with ready-made solutions for authentication, payments, analytics, and deployment.' />",
-    "<meta property='og:image' content='https://launchpike.com/public-banner.webp' />",
-    "<meta name='twitter:image' content='https://launchpike.com/public-banner.webp' />",
+    "<meta property='og:url' content='https://launchpike.org' />",
+    "<meta property='og:description' content='Your next startup doesn’t need a giant dev team. Get auth, billing, and database out of the box and a live MVP the same day.' />",
+    "<meta property='og:image' content='https://launchpike.org/public-banner.webp' />",
+    "<meta name='twitter:image' content='https://launchpike.org/public-banner.webp' />",
     "<meta name='twitter:image:width' content='800' />",
     "<meta name='twitter:image:height' content='400' />",
     "<meta name='twitter:card' content='summary_large_image' />",
@@ -39,7 +39,7 @@ app LaunchPike {
       email: {
         fromField: {
           name: "LaunchPike",
-          email: "noreply@launchpike.com"
+          email: "noreply@launchpike.org"
         },
         emailVerification: {
           clientRoute: EmailVerificationRoute,

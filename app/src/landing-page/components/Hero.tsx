@@ -1,6 +1,4 @@
 import { Link as WaspRouterLink, routes } from 'wasp/client/router';
-import openSaasBannerDark from '../../client/static/open-saas-banner-dark.png';
-import openSaasBannerLight from '../../client/static/open-saas-banner-light.png';
 import { Button } from '../../components/ui/button';
 
 export default function Hero() {
@@ -16,16 +14,15 @@ export default function Hero() {
               <span className='text-gradient-primary'>LaunchPike</span>
             </h1>
             <p className='mt-6 mx-auto max-w-2xl text-lg leading-8 text-muted-foreground'>
-              Full-featured OpenSaaS template with ready-made solutions for authentication, payments, analytics, and deployment. 
-              Create scalable web applications in record time.
+              Your next startup doesn’t need a giant dev team. Get auth, billing, and database out of the box and a live MVP the same day.
             </p>
             <div className='mt-10 flex items-center justify-center gap-x-6'>
-              <Button size='lg' variant='outline' asChild>
+              {/* <Button size='lg' variant='outline' asChild>
                 <WaspRouterLink to={routes.PricingPageRoute.to}>Learn More</WaspRouterLink>
-              </Button>
+              </Button> */}
               <Button size='lg' variant='default' asChild>
                 <WaspRouterLink to={routes.SignupRoute.to}>
-                  Get Started Free <span aria-hidden='true'>→</span>
+                  Try out <span aria-hidden='true'>→</span>
                 </WaspRouterLink>
               </Button>
             </div>

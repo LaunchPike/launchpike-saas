@@ -298,11 +298,11 @@ Run `wasp db start`, `wasp db migrate-dev`, and `wasp start`.
 
 ### Look & feel
 
-- Update `public/favicon.ico`
+- Update `public/favicon.svg`
 - Replace `public/public-banner.webp` and its `og:image` / `twitter:image` in `app.head`
 - Edit landing page `landingPage.tsx`
 - Customize nav, features, testimonials, FAQs in `contentSections.ts`
-- Replace `logo.webp` and `open-saas-banner.webp` under `static`
+- Replace `Logo.png` and `open-saas-banner.webp` under `static`
 - Global styles: `tailwind.config.cjs` (note: current globals mainly used in Admin)
 
 ### Analytics/Admin tweaks

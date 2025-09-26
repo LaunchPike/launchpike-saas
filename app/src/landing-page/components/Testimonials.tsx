@@ -23,7 +23,7 @@ export default function Testimonials({ testimonials }: { testimonials: Testimoni
       <div className='relative w-full z-10 px-4 md:px-0 columns-1 md:columns-2 lg:columns-3 gap-2 md:gap-6'>
         {testimonials.slice(0, itemsToShow).map((testimonial, idx) => (
           <div key={idx} className='break-inside-avoid mb-6'>
-            <Card className='flex flex-col justify-between'>
+            <Card className='flex flex-col justify-between min-h-[230px]'>
               <CardContent className='p-6'>
                 <blockquote className='leading-6 mb-4'>
                   <p className='italic text-sm'>{testimonial.quote}</p>
