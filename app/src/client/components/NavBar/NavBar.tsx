@@ -9,7 +9,7 @@ import { throttleWithTrailingInvocation } from '../../../shared/utils';
 import { UserDropdown } from '../../../user/UserDropdown';
 import { UserMenuItems } from '../../../user/UserMenuItems';
 import { useIsLandingPage } from '../../hooks/useIsLandingPage';
-import logo from '../../static/logo.webp';
+import logo from '../../static/Logo.png';
 import DarkModeSwitcher from '../DarkModeSwitcher';
 import { Announcement } from './Announcement';
 

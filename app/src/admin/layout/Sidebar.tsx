@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import Logo from '../../client/static/logo.webp';
+import Logo from '../../client/static/Logo.png';
 import { cn } from '../../lib/utils';
 import SidebarLinkGroup from './SidebarLinkGroup';
 
