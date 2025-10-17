@@ -1,6 +1,6 @@
 app LaunchPike {
   wasp: {
-    version: "^0.17.0"
+    version: "^0.18.0"
   },
 
   title: "LaunchPike - OpenSaaS Template",
