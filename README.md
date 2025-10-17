@@ -5,4 +5,5 @@ This project is based on [OpenSaas](https://opensaas.sh) template and consists o
 2. `e2e-tests` - [Playwright](https://playwright.dev/) tests for your Wasp web app.
 
 For more details, check READMEs of each respective directory!
+
  
