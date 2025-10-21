@@ -14,37 +14,50 @@
   with prewired auth, payments, DB, emails, and analytics.
 </h4>
 
+<!-- Line 1: Documentation (separate line, bright blue) -->
 <p align="center">
-  <a href="https://launchpike.org/" target="_blank" rel="noopener noreferrer">
+  <a href="https://launchpike.org/docs/introduction/" target="_blank" rel="noopener noreferrer">
     <img
-      src="https://img.shields.io/badge/Official%20Website-launchpike.org-3B82F6?style=for-the-badge&logo=google-chrome&logoColor=white&labelColor=0F172A"
-      alt="Official website" style="margin: 0 4px;"
-    >
-  </a>
-  <a href="https://x.com/LaunchPike" target="_blank" rel="noopener noreferrer">
-    <img
-      src="https://img.shields.io/badge/X-@LaunchPike-000000?style=for-the-badge&logo=x&logoColor=white&labelColor=0F172A"
-      alt="X (Twitter)" style="margin: 0 4px;"
-    >
-  </a>
-  <a href="https://discord.gg/Ce4WGvzVYG" target="_blank" rel="noopener noreferrer">
-    <img
-      src="https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=0F172A"
-      alt="Discord" style="margin: 0 4px;"
-    >
-  </a>
-  <a href="https://github.com/LaunchPike/launchpike-saas/stargazers" target="_blank" rel="noopener noreferrer">
-    <img
-      src="https://img.shields.io/github/stars/LaunchPike/launchpike-saas?style=for-the-badge&logo=github&label=Stars&labelColor=0F172A&cacheSeconds=600"
-      alt="GitHub stars" style="margin: 0 4px;"
+      src="https://img.shields.io/badge/DOCUMENTATION-3B82F6?style=for-the-badge&logo=book-open&logoColor=white&labelColor=0F172A"
+      alt="Documentation"
     >
   </a>
 </p>
 
+
+
+<!-- Line 2: Website (CAPS), X, Discord, Stars -->
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#quick-start">Quick start</a> •
-  <a href="#documents">Documents</a>
+  <a href="https://launchpike.org/" target="_blank" rel="noopener noreferrer">
+    <img
+      src="https://img.shields.io/badge/WEBSITE-LAUNCHPIKE.ORG-3B82F6?style=for-the-badge&logo=google-chrome&logoColor=white&labelColor=0F172A"
+      alt="WEBSITE"
+      style="margin: 0 4px;"
+    >
+  </a>
+
+  <a href="https://x.com/LaunchPike" target="_blank" rel="noopener noreferrer">
+    <img
+      src="https://img.shields.io/badge/X-@LAUNCHPIKE-000000?style=for-the-badge&logo=x&logoColor=white&labelColor=0F172A"
+      alt="X"
+      style="margin: 0 4px;"
+    >
+  </a>
+
+  <a href="https://discord.gg/Ce4WGvzVYG" target="_blank" rel="noopener noreferrer">
+    <img
+      src="https://img.shields.io/badge/DISCORD-JOIN-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=0F172A"
+      alt="Discord"
+      style="margin: 0 4px;"
+    >
+  </a>
+
+<p align="center">
+  <a href="#features">Features</a>
+  &nbsp;•&nbsp;
+  <a href="#quick-start">Quick start</a>
+  &nbsp;•&nbsp;
+  <a href="#still-have-questions-contact-us">Contact us</a>
 </p>
 
 
