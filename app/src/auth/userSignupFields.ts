@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import { defineUserSignupFields } from 'wasp/auth/providers/types';
 
-const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
+// Merge ADMIN_EMAILS from env and ADMIN_EMAIL (if set) into admin list
+const adminEmailsFromEnv = process.env.ADMIN_EMAILS?.split(',') || [];
+const adminEmail = process.env.ADMIN_EMAIL;
+const adminEmails = adminEmail 
+  ? [...new Set([...adminEmailsFromEnv, adminEmail])] // Remove duplicates
+  : adminEmailsFromEnv;
 
 const emailDataSchema = z.object({
   email: z.string(),
