@@ -74,6 +74,8 @@ app LaunchPike {
   db: {
     // Run `wasp db seed` to seed the database with the seed functions below:
     seeds: [
+      // Creates/updates admin user from ADMIN_EMAIL and ADMIN_PASSWORD env vars
+      import { seedAdminUser } from "@src/server/scripts/seedAdminUser",
       // Populates the database with a bunch of fake users to work with during development.
       import { seedMockUsers } from "@src/server/scripts/dbSeeds",
     ]
